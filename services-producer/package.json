@@ -1,8 +1,7 @@
 {
-  "name": "node-kafkajs",
+  "name": "services-producer",
   "version": "1.0.0",
   "main": "index.js",
-  "type": "module",
   "license": "MIT",
   "scripts": {
     "start": "node ./dist/index.js",
@@ -14,7 +13,8 @@
     "kafkajs": "^2.2.4",
     "redis": "^4.6.13",
     "uuid": "^9.0.1",
-    "winston": "^3.13.0"
+    "winston": "^3.13.0",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",

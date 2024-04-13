@@ -61,3 +61,14 @@ services:
       - '8001:5540'
     environment:
       REDISINSIGHT_REDIS_URI: 'redis://redis:6379'
+  mongodb:
+    image: mongo:6
+    hostname: mongodb
+    container_name: mongodb
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+      MONGO_INITDB_DATABASE: todo
+    ports:
+      - '27017:27017'
