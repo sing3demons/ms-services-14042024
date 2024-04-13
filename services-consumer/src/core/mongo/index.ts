@@ -18,6 +18,6 @@ export async function connect() {
 }
 
 
-export async function getClient() {
+export function getClient() {
     return client.db('todo').collection('tasks')
 }
