@@ -1,10 +1,10 @@
-import express from 'express';
+import express from 'express'
 import { v4 as uuidv4 } from 'uuid'
-import Context from './context/context';
-import { Router } from './root-routes';
-const port = process.env.PORT || 3000;
+import Context from './context/context.js'
+import { Router } from './root-routes.js'
+const port = process.env.PORT || 3000
 
-const app = express();
+const app = express()
 
 app.use((req, _res, next) => {
     if (!req.headers['x-session']) {
@@ -23,8 +23,9 @@ app.get('/health', (_req, res) => {
 
 app.use('/api/v1', Router)
 
-
-const server = app.listen(port, () => console.log('Server is listening on port ' + port));
+const server = app.listen(port, () =>
+    console.log('Server is listening on port ' + port)
+)
 
 process.on('SIGTERM', () => {
     console.log('SIGTERM signal received: closing HTTP server')

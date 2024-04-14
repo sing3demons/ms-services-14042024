@@ -61,9 +61,20 @@ services:
       - '8001:5540'
     environment:
       REDISINSIGHT_REDIS_URI: 'redis://redis:6379'
+  mongodb:
+    image: mongo:6
+    hostname: mongodb
+    container_name: mongodb
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: DEV_USER
+      MONGO_INITDB_ROOT_PASSWORD: C3BAD562-8968-4CD4-90CE-43B6E0BA2362
+      MONGO_INITDB_DATABASE: todo
+    ports:
+      - '27017:27017'
   service-consumer:
     build: 
-      context: ./consumer
+      context: ./services-consumer
       dockerfile: Dockerfile
     image: service-consumer
     container_name: service-consumer
@@ -75,5 +86,22 @@ services:
       KAFKA_BROKERS: broker:9092
       KAFKA_CLIENT_ID: node-app
       KAFKA_LOG_LEVEL: 4
+      KAFKA_TOPIC: topic1,create.todos,update.todos,delete.todos
+      REDIS_URL: redis://redis:6379
+      MONGO_URI: bW9uZ29kYjovL0RFVl9VU0VSOkMzQkFENTYyLTg5NjgtNENENC05MENFLTQzQjZFMEJBMjM2MkBtb25nb2RiOjI3MDE3L3RvZG8/YXV0aFNvdXJjZT1hZG1pbg==
+  service-producer:
+    build: 
+      context: ./services-producer
+      dockerfile: Dockerfile
+    image: service-producer
+    container_name: service-producer
+    restart: always
+    depends_on:
+      - broker
+    environment:
+      KAFKA_BROKERS: broker:9092
+      KAFKA_CLIENT_ID: node-app
+      KAFKA_LOG_LEVEL: 4
       KAFKA_TOPIC: topic1
       REDIS_URL: redis://redis:6379
+      MONGO_URI: bW9uZ29kYjovL0RFVl9VU0VSOkMzQkFENTYyLTg5NjgtNENENC05MENFLTQzQjZFMEJBMjM2MkBtb25nb2RiOjI3MDE3L3RvZG8/YXV0aFNvdXJjZT1hZG1pbg==

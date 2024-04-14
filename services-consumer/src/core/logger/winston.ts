@@ -36,7 +36,7 @@ const logger = createLogger({
             handleExceptions: true,
         }),
     ],
-    defaultMeta: { serviceName: process.env.SERVICE_NAME ?? 'ms-service' },
+    defaultMeta: { serviceName: process.env.SERVICE_NAME ?? 'ServiceConsumer' },
 })
 
 function makeStructuredClone<T>(obj: T): T {

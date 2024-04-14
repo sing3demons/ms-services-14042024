@@ -4,11 +4,11 @@ export enum Status {
 }
 
 export interface Todo {
-    id: string;
-    title: string;
-    description?: string;
-    done: boolean;
-    startDate: string;
-    endDate: string;
-    status: Status;
+    id: string
+    title: string
+    description?: string
+    done: boolean
+    startDate: string
+    endDate: string
+    status: Status
 }

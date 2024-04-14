@@ -46,10 +46,10 @@ export class RedisService {
     async set(key: string, value: string, timeout?: number) {
         const options: SetOptions = {}
         if (timeout) {
-            options.EX = timeout * 1000
+            options.EX = timeout
         }
         const record = await this.client.set(key, value, options)
-        console.log(`Set key ${key} with value ${value}`, { record })
+        return record
     }
 
     async get(key: string) {

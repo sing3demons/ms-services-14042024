@@ -1,7 +1,9 @@
 import { Logger as WinstonLog, createLogger, format, transports } from 'winston'
 import ignoreCase from './ignore.js'
 import Sensitive from './sensitive.js'
-import { ContextType } from '../context/context.js'
+// import { ContextType } from '../context/context.js'
+
+export type ContextType = Record<string, string> 
 
 let level = process.env.LOG_LEVEL ?? 'debug'
 if (process.env.NODE_ENV === 'production') {
@@ -42,10 +44,7 @@ class Logger implements ILogger {
         this.log = createLogger({
             level: level,
             format: format.combine(
-                format.timestamp({
-                    format: 'YYYY-MM-DD HH:mm:ss',
-                    alias: '@timestamp',
-                }),
+                format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss', alias: '@timestamp' }),
                 format.json({
                     replacer(key, value) {
                         if (ignoreCase.equal(key, 'password')) {
@@ -60,7 +59,7 @@ class Logger implements ILogger {
                         return value
                     },
                     // space: 2
-                })
+                }),
             ),
             exceptionHandlers: [],
             exitOnError: false,

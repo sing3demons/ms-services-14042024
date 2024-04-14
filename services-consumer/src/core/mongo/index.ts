@@ -1,23 +1,38 @@
-import { MongoClient } from 'mongodb'
+import { Collection, MongoClient } from 'mongodb'
 
-const uri =
+const b64string =
     process.env.MONGO_URI ??
-    'mongodb://root:root@localhost:27017/todo?authSource=admin'
+    'bW9uZ29kYjovL0RFVl9VU0VSOkMzQkFENTYyLTg5NjgtNENENC05MENFLTQzQjZFMEJBMjM2MkBsb2NhbGhvc3Q6MjcwMTcvdG9kbz9hdXRoU291cmNlPWFkbWlu'
 
-const client = new MongoClient(uri)
+export default class MongoService {
+    private client: MongoClient
 
-export async function connect() {
-    try {
-        await client.connect()
-        console.log('Connected to MongoDB replica set')
-        return client.db()
-    } catch (error) {
-        console.error('Error connecting to MongoDB:', error)
-        process.exit(1)
+    constructor() {
+        const buf = Buffer.from(b64string, 'base64')
+        const uri = buf.toString('utf-8')
+        console.log('Creating MongoDB client')
+        console.log('URI:', uri)
+        this.client = new MongoClient(uri)
+        this.client.on('connect', async () => {
+            console.log('Connected to MongoDB')
+        })
     }
-}
+
+    async connect() {
+        await this.client.connect()
+    }
+
+    async disconnect() {
+        await this.client.close()
+    }
+
+    getClient() {
+        return this.client
+    }
+
+    getCollection<T extends object>(collection: string = 'tasks'): Collection<T> {
+        return this.client.db('todo').collection(collection);
+    }
 
 
-export function getClient() {
-    return client.db('todo').collection('tasks')
 }

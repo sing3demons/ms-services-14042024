@@ -1,12 +1,10 @@
-import { KafkaService } from './core/kafka/kafka.js';
-import { connect, getClient } from './core/mongo/index.js';
-import { RedisService } from './core/redis/redis.js';
+import { KafkaService } from './core/kafka/kafka.js'
+import { RedisService } from './core/redis/redis.js'
+import MongoService from './core/mongo/index.js'
+import { Collection, MongoClient } from 'mongodb'
+import Logger from './core/logger/index.js'
 
-
-const topic = process.env.KAFKA_TOPIC || 'create.todos';
-
-const redisClient = new RedisService();
-const kafkaService = new KafkaService();
+const topic = process.env.KAFKA_TOPIC || 'create.todos'
 
 export enum Status {
     ACTIVE = 'active',
@@ -14,49 +12,88 @@ export enum Status {
 }
 
 export interface Todo {
-    id: string;
-    title: string;
-    description?: string;
-    done: boolean;
-    startDate: string;
-    endDate: string;
-    status: Status;
+    id: string
+    title: string
+    description?: string
+    done: boolean
+    startDate: string
+    endDate: string
+    status: Status
 }
 
+class ServiceManager {
+    constructor(
+        private readonly redis: RedisService,
+        private readonly client: MongoClient,
+        private readonly logger: Logger
+    ) { }
 
+    consumer = async (
+        ctx: Record<string, string>,
+        topic: string,
+        message: string
+    ) => {
+        const logger = this.logger.Logger(ctx)
+        const db = this.client.db('todo')
+        logger.info('Received message from topic', { topic, message })
+        switch (topic) {
+            case 'create.todos':
+                const col = db.collection<Todo>('tasks')
+                const payload = JSON.parse(message) as Todo
+                const topic = 'create.todos'
+                const key = `${topic}::${payload.id}`
 
-async function serviceConsumer(ctx: Record<string, string>, topic: string, message: string) {
-    await redisClient.connect();
-    const col = await getClient();
-    console.log(`Received message from topic ${topic}: ${message}`);
-    console.log('Context:', ctx);
-    switch (topic) {
-        case 'create.todos':
-            const payload = JSON.parse(message) as Todo
-            const topic = 'create.todos'
-            const key = `${topic}::${payload.id}`
+                const response = await this.createTodo(key, payload, col)
+                logger.info('Todo created', response)
 
+                break
+            case 'topic2':
+                await this.redis.delete('topic1::' + ctx.session)
+                break
+            default:
+                console.log('Unknown topic')
+        }
+    }
+
+    async createTodo(key: string, payload: Todo, col: Collection<Todo>) {
+        try {
             const response = {
                 id: payload.id,
                 status: 'success',
                 data: payload,
             }
 
-            await col.insertOne(response)
-            await redisClient.set(key, JSON.stringify(response), 10)
-            break;
-        case 'topic2':
-            await redisClient.delete('topic1::' + ctx.session)
-            break;
-        default:
-            console.log('Unknown topic');
+            const insertOneResult = await col.insertOne(payload)
+            const update = await this.redis.set(key, JSON.stringify(response), 10)
+            return {
+                insertOneResult,
+                update,
+                response,
+            }
+        } catch (error) {
+            if (error instanceof Error) {
+                throw new Error(error.message)
+            }
+            throw new Error('Error creating todo')
+        }
     }
 }
 
 async function main() {
-    await connect();
-    kafkaService.createTopics(topic.split(','));
-    kafkaService.consumeMessages(topic.split(','), serviceConsumer)
+    const mongoService = new MongoService()
+    await mongoService.connect()
+    const mongoClient = mongoService.getClient()
+    const topics = topic.split(',')
+
+    const redisClient = new RedisService()
+    await redisClient.connect()
+    const logger = new Logger()
+
+    const kafkaService = new KafkaService()
+    const serviceConsumer = new ServiceManager(redisClient, mongoClient, logger)
+
+    kafkaService.createTopics(topics)
+    kafkaService.consumeMessages(topics, serviceConsumer.consumer)
 }
 
 main().catch(console.error)

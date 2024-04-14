@@ -56,7 +56,7 @@ services:
     container_name: redislnsight
     restart: always
     volumes:
-      - ../dist/redisinsight:/data
+      - ./dist/redisinsight:/data
     ports:
       - '8001:5540'
     environment:
@@ -67,8 +67,8 @@ services:
     container_name: mongodb
     restart: always
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: root
+      MONGO_INITDB_ROOT_USERNAME: DEV_USER
+      MONGO_INITDB_ROOT_PASSWORD: C3BAD562-8968-4CD4-90CE-43B6E0BA2362
       MONGO_INITDB_DATABASE: todo
     ports:
       - '27017:27017'

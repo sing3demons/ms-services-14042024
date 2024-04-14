@@ -44,7 +44,6 @@ export class TodoService {
                 data: todo,
             }
 
-
             await this.client.set(key, JSON.stringify(response))
 
             this.logger.info(

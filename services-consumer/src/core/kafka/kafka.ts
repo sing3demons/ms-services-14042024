@@ -37,7 +37,6 @@ export class KafkaService {
     async createTopics(topics: string[]) {
         await this.admin.connect();
         const existingTopics = await this.admin.listTopics();
-        console.log('=============+> Existing topics:', existingTopics)
         const topicsToCreate = topics.filter(topic => !existingTopics.includes(topic));
         if (topicsToCreate.length !== 0) {
             await this.admin.createTopics({

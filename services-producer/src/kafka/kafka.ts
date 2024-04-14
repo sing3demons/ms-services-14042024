@@ -1,7 +1,19 @@
-import { Admin, IHeaders, Kafka, KafkaConfig, KafkaMessage, Logger, Message } from 'kafkajs';
+import {
+    Admin,
+    IHeaders,
+    Kafka,
+    KafkaConfig,
+    KafkaMessage,
+    Logger,
+    Message,
+} from 'kafkajs'
 import { v4 as uuid } from 'uuid'
 
-type MessageCallback = (ctx: Record<string, string>, topic: string, message: string) => void
+type MessageCallback = (
+    ctx: Record<string, string>,
+    topic: string,
+    message: string
+) => void
 
 const brokers = process.env.KAFKA_BROKERS?.split(',') ?? ['localhost:9092']
 const clientId = process.env.KAFKA_CLIENT_ID ?? 'my-app-1'
@@ -22,37 +34,40 @@ const kafkaConfig: KafkaConfig = {
     logLevel: Number(logLevel),
 }
 
-
 export class KafkaService {
     private logger: Logger
     private admin: Admin
     private readonly kafka: Kafka
 
-    constructor(
-    ) {
+    constructor() {
         this.kafka = new Kafka(kafkaConfig)
         this.logger = this.kafka.logger()
         this.admin = this.kafka.admin()
     }
 
     async createTopics(topics: string[]) {
-        await this.admin.connect();
-        const existingTopics = await this.admin.listTopics();
+        await this.admin.connect()
+        const existingTopics = await this.admin.listTopics()
         console.log('=============+> Existing topics:', existingTopics)
-        const topicsToCreate = topics.filter(topic => !existingTopics.includes(topic));
+        const topicsToCreate = topics.filter(
+            (topic) => !existingTopics.includes(topic)
+        )
         if (topicsToCreate.length !== 0) {
             await this.admin.createTopics({
-                topics: topics.map(topic => ({ topic })),
-            });
+                topics: topics.map((topic) => ({ topic })),
+            })
         }
         this.logger.info(`Creating topics ${topicsToCreate.join(', ')}`)
 
-
-        await this.admin.disconnect();
+        await this.admin.disconnect()
     }
 
-    async sendMessage(topic: string, message: Array<Object> | Object | string, headers?: IHeaders) {
-        const producer = this.kafka.producer();
+    async sendMessage(
+        topic: string,
+        message: Array<Object> | Object | string,
+        headers?: IHeaders
+    ) {
+        const producer = this.kafka.producer()
         if (!headers) {
             headers = { session: `unknown-${uuid()}` }
         }
@@ -77,19 +92,27 @@ export class KafkaService {
         }
 
         try {
-            await producer.connect();
+            await producer.connect()
             const record = await producer.send({
                 topic,
                 messages,
-            });
+            })
 
-            this.logger.info(`Message sent to topic ${topic}`, { record, topic, messages })
+            this.logger.info(`Message sent to topic ${topic}`, {
+                record,
+                topic,
+                messages,
+            })
 
-            await producer.disconnect();
+            await producer.disconnect()
             return record
         } catch (error) {
-            this.logger.error(`Error sending message to topic ${topic}`, { error, topic, messages })
-            await producer.disconnect();
+            this.logger.error(`Error sending message to topic ${topic}`, {
+                error,
+                topic,
+                messages,
+            })
+            await producer.disconnect()
             throw error
         }
     }
@@ -97,14 +120,22 @@ export class KafkaService {
     async consumeMessages(topics: string[], callback: MessageCallback) {
         const groupId = process.env.KAFKA_GROUP_ID ?? 'my-group-1'
 
-        const consumer = this.kafka.consumer({ groupId });
-        await consumer.connect();
-        await consumer.subscribe({ topics, fromBeginning: true });
+        const consumer = this.kafka.consumer({ groupId })
+        await consumer.connect()
+        await consumer.subscribe({ topics, fromBeginning: true })
         await consumer.run({
             eachMessage: async ({ topic, partition, message }) => {
                 this.logger.info(`Received message from topic ${topic}`)
 
-                const { headers, value, timestamp, attributes, key, offset, size }: KafkaMessage = message
+                const {
+                    headers,
+                    value,
+                    timestamp,
+                    attributes,
+                    key,
+                    offset,
+                    size,
+                }: KafkaMessage = message
 
                 for (const key in headers) {
                     if (headers?.hasOwnProperty(key) && Buffer.isBuffer(headers[key])) {
@@ -130,9 +161,8 @@ export class KafkaService {
                     throw new Error('Invalid message')
                 }
 
-
                 callback(ctx, topic, payload)
             },
-        });
+        })
     }
 }
