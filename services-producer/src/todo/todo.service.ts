@@ -61,10 +61,14 @@ export class TodoService {
         try {
             const todos = await this.client.getKeys('todos::*')
             this.logger.info('todo.service', todos, { session: ctx.session })
+            const host = process.env.HOST ?? 'http://localhost'
+            const port = process.env.PORT ?? '3000'
+            const api = `${host}:${port}/api/v1/todo`
             return todos.map((key) => {
+                const id = key.split('::')[1]
                 return {
-                    id: key.split('::')[1],
-                    href: `http://localhost:3000/api/v1/todo/${key.split('::')[1]}`,
+                    id,
+                    href: `${api}/${id}/status`,
                 }
             })
         } catch (error) {
