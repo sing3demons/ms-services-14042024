@@ -28,11 +28,7 @@ class ServiceManager {
         private readonly logger: Logger
     ) { }
 
-    consumer = async (
-        ctx: Record<string, string>,
-        topic: string,
-        message: string
-    ) => {
+    consumer = async (ctx: Record<string, string>, topic: string, message: string) => {
         const logger = this.logger.Logger(ctx)
         const db = this.client.db('todo')
         logger.info('Received message from topic', { topic, message })
