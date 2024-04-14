@@ -25,9 +25,7 @@ export class RedisService {
             },
         })
 
-        this.client.on('connect', async () => {
-            console.log('=========================> connected')
-        })
+        this.client.on('connect', async () => console.log('redis connected'))
 
         this.client.on('error', (error) => {
             console.error(error)
@@ -40,6 +38,18 @@ export class RedisService {
 
     async disconnect() {
         await this.client.disconnect()
+    }
+
+    async getKeys(pattern: string) {
+        const keys = await this.client.keys(pattern)
+        console.log(`Get keys with pattern ${pattern}`, { keys })
+        return keys
+    }
+
+    async getAllKeys() {
+        const keys = await this.client.keys('*')
+        console.log(`Get all keys`, { keys })
+        return keys
     }
 
     async set(key: string, value: string, timeout?: number) {

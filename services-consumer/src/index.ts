@@ -40,8 +40,7 @@ class ServiceManager {
             case 'create.todos':
                 const col = db.collection<Todo>('tasks')
                 const payload = JSON.parse(message) as Todo
-                const topic = 'create.todos'
-                const key = `${topic}::${payload.id}`
+                const key = `todos::${payload.id}`
 
                 const response = await this.createTodo(key, payload, col)
                 logger.info('Todo created', response)
@@ -64,13 +63,14 @@ class ServiceManager {
             }
 
             const insertOneResult = await col.insertOne(payload)
-            const update = await this.redis.set(key, JSON.stringify(response), 10)
+            const update = await this.redis.set(key, JSON.stringify(response), 60)
             return {
                 insertOneResult,
                 update,
                 response,
             }
         } catch (error) {
+            await this.redis.set(key, JSON.stringify({ status: 'error', data: payload }), 60)
             if (error instanceof Error) {
                 throw new Error(error.message)
             }

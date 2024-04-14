@@ -34,7 +34,7 @@ export class TodoService {
             }
 
             const topic = 'create.todos'
-            const key = `${topic}::${id}`
+            const key = `todos::${id}`
 
             const record = await this.kafka.sendMessage(topic, todo, headers)
 
@@ -52,6 +52,32 @@ export class TodoService {
                 { session: ctx.session }
             )
             return response
+        } catch (error) {
+            throw new Error(error)
+        }
+    }
+
+    getTodos = async (ctx: ContextType) => {
+        try {
+            const todos = await this.client.getKeys('todos::*')
+            this.logger.info('todo.service', todos, { session: ctx.session })
+            return todos.map((key) => {
+                return {
+                    id: key.split('::')[1],
+                    href: `http://localhost:3000/api/v1/todo/${key.split('::')[1]}`,
+                }
+            })
+        } catch (error) {
+            throw new Error(error)
+        }
+    }
+
+    getTodo = async (ctx: ContextType, id: string) => {
+        try {
+            const key = `todos::${id}`
+            const todo = await this.client.get(key)
+            this.logger.info('todo.service', todo ? JSON.parse(todo) : {}, { session: ctx.session })
+            return todo ? JSON.parse(todo) : {}
         } catch (error) {
             throw new Error(error)
         }
