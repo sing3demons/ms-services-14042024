@@ -26,12 +26,15 @@ const kafkaConfig: KafkaConfig = {
 export class KafkaService {
     private logger: Logger
     private admin: Admin
+    private kafka: Kafka
 
     constructor(
-        private readonly kafka: Kafka = new Kafka(kafkaConfig),
+        // private readonly kafka: Kafka = new Kafka(kafkaConfig),
     ) {
+        this.kafka = new Kafka(kafkaConfig)
         this.logger = this.kafka.logger()
         this.admin = this.kafka.admin()
+        this.kafka.logger().info('KafkaService initialized')
     }
 
     async createTopics(topics: string[]) {
@@ -40,7 +43,7 @@ export class KafkaService {
         const topicsToCreate = topics.filter(topic => !existingTopics.includes(topic));
         if (topicsToCreate.length !== 0) {
             await this.admin.createTopics({
-                topics: topics.map(topic => ({ topic })),
+                topics: topics.map(topic => ({ topic, numPartitions: 1, replicationFactor: 1 })),
             });
         }
         this.logger.info(`Creating topics ${topicsToCreate.join(', ')}`)

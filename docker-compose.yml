@@ -5,6 +5,11 @@ services:
     hostname: broker
     container_name: broker
     restart: always
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions.sh", "--bootstrap-server", "broker:29092"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
     ports:
       - '9092:9092'
       - '9101:9101'
@@ -27,7 +32,7 @@ services:
       # Replace CLUSTER_ID with a unique base64 UUID using "bin/kafka-storage.sh random-uuid"
       # See https://docs.confluent.io/kafka/operations-tools/kafka-tools.html#kafka-storage-sh
       CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
-      KAFKA_CREATE_TOPICS: 'write-logs:1:1,topic1:1:1'
+      KAFKA_CREATE_TOPICS: 'write-logs:1:1,topic1:1:1,create.todos:1:1,update.todos:1:1,delete.todos:1:1'
   control-center:
     image: confluentinc/cp-enterprise-control-center:7.4.0
     hostname: control-center
@@ -82,11 +87,12 @@ services:
     depends_on:
       - broker
       - redis
+      - mongodb
     environment:
       KAFKA_BROKERS: broker:9092
       KAFKA_CLIENT_ID: node-app
       KAFKA_LOG_LEVEL: 4
-      KAFKA_TOPIC: topic1,create.todos,update.todos,delete.todos
+      KAFKA_TOPIC: create.todos,update.todos,delete.todos
       REDIS_URL: redis://redis:6379
       MONGO_URI: bW9uZ29kYjovL0RFVl9VU0VSOkMzQkFENTYyLTg5NjgtNENENC05MENFLTQzQjZFMEJBMjM2MkBtb25nb2RiOjI3MDE3L3RvZG8/YXV0aFNvdXJjZT1hZG1pbg==
   service-producer:
@@ -96,8 +102,11 @@ services:
     image: service-producer
     container_name: service-producer
     restart: always
+    ports:
+      - '3000:3000'
     depends_on:
       - broker
+      - redis
     environment:
       KAFKA_BROKERS: broker:9092
       KAFKA_CLIENT_ID: node-app

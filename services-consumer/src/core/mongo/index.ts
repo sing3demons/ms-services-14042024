@@ -10,8 +10,6 @@ export default class MongoService {
     constructor() {
         const buf = Buffer.from(b64string, 'base64')
         const uri = buf.toString('utf-8')
-        console.log('Creating MongoDB client')
-        console.log('URI:', uri)
         this.client = new MongoClient(uri)
         this.client.on('connect', async () => {
             console.log('Connected to MongoDB')

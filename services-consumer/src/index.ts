@@ -92,8 +92,8 @@ async function main() {
     const kafkaService = new KafkaService()
     const serviceConsumer = new ServiceManager(redisClient, mongoClient, logger)
 
-    kafkaService.createTopics(topics)
-    kafkaService.consumeMessages(topics, serviceConsumer.consumer)
+    await kafkaService.createTopics(topics)
+    await kafkaService.consumeMessages(topics, serviceConsumer.consumer)
 }
 
 main().catch(console.error)
