@@ -26,9 +26,13 @@ class ServiceManager {
         private readonly redis: RedisService,
         private readonly client: MongoClient,
         private readonly logger: Logger
-    ) { }
+    ) {}
 
-    consumer = async (ctx: Record<string, string>, topic: string, message: string) => {
+    consumer = async (
+        ctx: Record<string, string>,
+        topic: string,
+        message: string
+    ) => {
         const logger = this.logger.Logger(ctx)
         const db = this.client.db('todo')
         logger.info('Received message from topic', { topic, message })
@@ -59,14 +63,22 @@ class ServiceManager {
             }
 
             const insertOneResult = await col.insertOne(payload)
-            const update = await this.redis.set(key, JSON.stringify(response), 60)
+            const update = await this.redis.set(
+                key,
+                JSON.stringify(response),
+                60
+            )
             return {
                 insertOneResult,
                 update,
                 response,
             }
         } catch (error) {
-            await this.redis.set(key, JSON.stringify({ status: 'error', data: payload }), 60)
+            await this.redis.set(
+                key,
+                JSON.stringify({ status: 'error', data: payload }),
+                60
+            )
             if (error instanceof Error) {
                 throw new Error(error.message)
             }
@@ -85,7 +97,7 @@ async function main() {
     await redisClient.connect()
     const logger = new Logger()
 
-    const kafkaService = new KafkaService()
+    const kafkaService = new KafkaService(logger)
     const serviceConsumer = new ServiceManager(redisClient, mongoClient, logger)
 
     await kafkaService.createTopics(topics)

@@ -1,4 +1,4 @@
-import {  createLogger, format, transports } from 'winston'
+import { createLogger, format, transports } from 'winston'
 import ignoreCase from './ignore.js'
 import Sensitive from './sensitive.js'
 import { Request } from 'express'
@@ -26,7 +26,7 @@ const logger = createLogger({
                 return value
             },
             // space: 2
-        }),
+        })
     ),
     exceptionHandlers: [],
     exitOnError: false,
@@ -94,5 +94,6 @@ export function NewLogger(req: Request, extra?: object): ILogger {
     }
     return logger.child({ session, ...extra }) as ILogger
 }
+export { logger }
 
 export default log
