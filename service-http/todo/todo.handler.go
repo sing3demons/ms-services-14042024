@@ -57,7 +57,6 @@ func (r *Response) JSON(statusCode int, data any) error {
 type HandlerService func(w http.ResponseWriter, r *http.Request)
 
 func (t *todoHandler) GetTodos(w http.ResponseWriter, r *http.Request) {
-
 	ctx := r.Context()
 	logger := mlog.L(ctx)
 	logger.Info("get all todos")
@@ -80,7 +79,7 @@ func (t *todoHandler) GetTodos(w http.ResponseWriter, r *http.Request) {
 		todos = append(todos, todo)
 	}
 
-	logger.Info("get all todos success", todos)
+	logger.Info("get all todos success", slog.Any("todos", todos))
 
 	response(w).JSON(http.StatusOK, todos)
 }

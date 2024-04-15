@@ -29,8 +29,10 @@ func NewMicroservice() Microservice {
 
 func (m *muxRouter) StartHTTP(port string) error {
 	s := &http.Server{
-		Addr:    port,
-		Handler: m,
+		Addr:         port,
+		Handler:      m,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
 	}
 
 	log.Printf("starting server at %s", port)
