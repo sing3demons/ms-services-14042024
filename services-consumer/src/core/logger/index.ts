@@ -3,7 +3,7 @@ import ignoreCase from './ignore.js'
 import Sensitive from './sensitive.js'
 // import { ContextType } from '../context/context.js'
 
-export type ContextType = Record<string, string> 
+export type ContextType = Record<string, string>
 
 let level = process.env.LOG_LEVEL ?? 'debug'
 if (process.env.NODE_ENV === 'production') {
@@ -55,11 +55,13 @@ class Logger implements ILogger {
                             return Sensitive.maskNumber(value)
                         } else if (ignoreCase.equal(key, 'phone')) {
                             return Sensitive.maskPassword(value)
+                        } else if (key === 'timestamp') {
+                            return undefined
                         }
                         return value
                     },
                     // space: 2
-                }),
+                })
             ),
             exceptionHandlers: [],
             exitOnError: false,

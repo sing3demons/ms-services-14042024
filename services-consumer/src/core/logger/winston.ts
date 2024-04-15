@@ -22,6 +22,8 @@ const logger = createLogger({
                     return Sensitive.maskNumber(value)
                 } else if (ignoreCase.equal(key, 'phone')) {
                     return Sensitive.maskPassword(value)
+                } else if (key === 'timestamp') {
+                    return undefined
                 }
                 return value
             },
