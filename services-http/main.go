@@ -22,7 +22,10 @@ func main() {
 
 	r := routes.NewMicroservice()
 	r.Use(mlog.Middleware(logger))
-	todoHandler := todo.NewTodoHandler(logger, rdb, mongoClient)
+
+	todoRepository := todo.NewTaskRepository(mongoClient)
+	todoService := todo.NewTaskService(todoRepository, rdb)
+	todoHandler := todo.NewTodoHandler(logger, todoService)
 
 	r.GET("/todos", todoHandler.GetTodos)
 

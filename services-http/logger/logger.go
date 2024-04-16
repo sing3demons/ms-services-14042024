@@ -46,7 +46,7 @@ func (l *LoggerService) Info(msg string, fields ...Fields) {
 	var attrs []any
 	for _, field := range fields {
 		for k, v := range field {
-			attrs = append(attrs, slog.String(k, v.(string)))
+			attrs = append(attrs, slog.Any(k, v))
 		}
 	}
 	l.log.Info(msg, attrs...)
@@ -56,7 +56,7 @@ func (l *LoggerService) Debug(msg string, fields ...Fields) {
 	var attrs []any
 	for _, field := range fields {
 		for k, v := range field {
-			attrs = append(attrs, slog.String(k, v.(string)))
+			attrs = append(attrs, slog.Any(k, v))
 		}
 	}
 	l.log.Debug(msg, attrs...)
@@ -66,7 +66,7 @@ func (l *LoggerService) Warn(msg string, fields ...Fields) {
 	var attrs []any
 	for _, field := range fields {
 		for k, v := range field {
-			attrs = append(attrs, slog.String(k, v.(string)))
+			attrs = append(attrs, slog.Any(k, v))
 		}
 	}
 	l.log.Warn(msg, attrs...)
@@ -76,7 +76,7 @@ func (l *LoggerService) Error(msg string, fields ...Fields) {
 	var attrs []any
 	for _, field := range fields {
 		for k, v := range field {
-			attrs = append(attrs, slog.String(k, v.(string)))
+			attrs = append(attrs, slog.Any(k, v))
 		}
 	}
 	l.log.Error(msg, attrs...)

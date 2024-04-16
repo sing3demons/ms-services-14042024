@@ -2,18 +2,16 @@ package mlog
 
 import (
 	"context"
-	"log/slog"
-	"os"
+
+	typeLog "github.com/sing3demons/service-http/logger"
 )
 
-func L(ctx context.Context) *slog.Logger {
+func L(ctx context.Context) typeLog.ILogger {
 	logger := ctx.Value(loggerKey)
 	switch logger := logger.(type) {
-	case *slog.Logger:
+	case typeLog.ILogger:
 		return logger
 	default:
-		return slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-			Level: slog.LevelDebug,
-		}))
+		return typeLog.New()
 	}
 }

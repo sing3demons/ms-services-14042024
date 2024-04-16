@@ -1,33 +1,29 @@
 package todo
 
 import (
+	"context"
 	"encoding/json"
-	"log/slog"
 	"net/http"
-	"os"
+	"time"
 
-	"github.com/sing3demons/service-http/cache"
 	"github.com/sing3demons/service-http/logger"
 	"github.com/sing3demons/service-http/mlog"
-	"github.com/sing3demons/service-http/store"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
 type todoHandler struct {
-	logger logger.ILogger
-	rdb    cache.Cacher
-	client *store.Store
+	logger      logger.ILogger
+	taskService TaskService
 }
 
 type TodoHandler interface {
 	GetTodos(w http.ResponseWriter, r *http.Request)
 }
 
-func NewTodoHandler(logger logger.ILogger, rdb cache.Cacher, mongoClient *store.Store) TodoHandler {
+func NewTodoHandler(logger logger.ILogger, taskService TaskService) TodoHandler {
 	return &todoHandler{
-		logger: logger,
-		rdb:    rdb,
-		client: mongoClient,
+		logger:      logger,
+		taskService: taskService,
 	}
 }
 
@@ -59,29 +55,24 @@ func (r *Response) JSON(statusCode int, data any) error {
 type HandlerService func(w http.ResponseWriter, r *http.Request)
 
 func (t *todoHandler) GetTodos(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	logger := mlog.L(ctx)
-	logger.Info("get all todos")
+	start := time.Now()
+	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+	defer cancel()
+	log := mlog.L(ctx)
+	log.Info("HandlerService :: start================>")
+	todos, err := t.taskService.GetTodos(ctx, bson.M{}, log)
 
-	col := t.client.Database("todo").Collection("tasks")
-	logger.Debug("set collection to tasks")
-	tasks, err := col.Find(ctx, bson.M{})
-	logger.Debug("find all tasks")
 	if err != nil {
-		logger.Error("failed to get all todos", err)
-		response(w).JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		log.Error("HandlerService ::  ===> get all todos", logger.Fields{
+			"error": err,
+		})
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	todos := []Task{}
-	for tasks.Next(ctx) {
-		var todo Task
-		tasks.Decode(&todo)
-		todo.Href = os.Getenv("HOST") + "/todos/" + todo.ID
-		todos = append(todos, todo)
-	}
-
-	logger.Info("get all todos success", slog.Any("todos", todos))
-
+	log.Info("end ======================> ", logger.Fields{
+		"todos":    todos,
+		"duration": time.Since(start).Seconds(),
+	})
 	response(w).JSON(http.StatusOK, todos)
 }

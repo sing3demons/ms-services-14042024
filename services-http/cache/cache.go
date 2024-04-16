@@ -20,7 +20,7 @@ type cacher struct {
 	logger logger.ILogger
 }
 
-func NewCacher(logger logger.ILogger) Cacher {
+func NewCacher(log logger.ILogger) Cacher {
 	uri := os.Getenv("REDIS_URL")
 	if uri == "" {
 		uri = "localhost:6379"
@@ -29,12 +29,17 @@ func NewCacher(logger logger.ILogger) Cacher {
 	redisClient := redis.NewClient(&redis.Options{
 		Addr: uri,
 	})
-	_, err := redisClient.Ping(context.Background()).Result()
+	cmd, err := redisClient.Ping(context.Background()).Result()
 	if err != nil {
 		panic(err)
 	}
 
-	return &cacher{redisClient, logger}
+	log.Info("start redis", logger.Fields{
+		"ping":   "success",
+		"status": cmd,
+	})
+
+	return &cacher{redisClient, log}
 }
 
 func (c *cacher) Close() error {
@@ -43,18 +48,48 @@ func (c *cacher) Close() error {
 
 func (c *cacher) Get(ctx context.Context, key string) (string, error) {
 	statusCmd := c.Client.Get(ctx, key)
-	c.logger.Debug("get key", logger.Fields{
+	c.logger.Debug("get=>key", logger.Fields{
 		"key":   key,
 		"value": statusCmd.String(),
+		"error": statusCmd.Err(),
 	})
-	return statusCmd.Result()
+
+	if statusCmd.Err() != nil {
+		c.logger.Debug("get ==> key", logger.Fields{
+			"key": key,
+			"err": statusCmd.Err(),
+		},
+		)
+
+		return "", statusCmd.Err()
+	}
+	s, err := statusCmd.Result()
+	c.logger.Debug("get key", logger.Fields{
+		"key":   key,
+		"value": s,
+		"err":   err,
+	})
+	if err != nil {
+		c.logger.Error("get ==> key", logger.Fields{
+			"key": key,
+			"err": err,
+		})
+
+		return "", err
+	}
+	return s, nil
 }
 
 func (c *cacher) Set(ctx context.Context, key string, value any, exp uint) (string, error) {
-	statusCmd := c.Client.Set(ctx, key, value, time.Duration(exp))
+	var expiration time.Duration
+	if exp > 0 {
+		expiration = time.Duration(exp) * time.Second
+	}
+
+	statusCmd := c.Client.Set(ctx, key, value, expiration)
 	c.logger.Debug("get key", logger.Fields{
 		"key":    key,
-		"value":  value.(string),
+		"value":  value,
 		"status": statusCmd,
 	})
 	return statusCmd.Result()
