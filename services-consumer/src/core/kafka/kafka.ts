@@ -25,15 +25,7 @@ const kafkaConfig: KafkaConfig = {
     logLevel: Number(logLevelKafka),
     logCreator: (_logLevel: logLevel) => {
         const logger = CreateLogger()
-        return ({
-            level,
-            log,
-        }: {
-            namespace: string
-            level: logLevel
-            label: string
-            log: any
-        }) => {
+        return ({ level, log }: { namespace: string; level: logLevel; label: string; log: any }) => {
             const { message, ...extra } = log
             logger.log({
                 level: ((level: any) => {
@@ -148,8 +140,7 @@ export class KafkaService {
             eachMessage: async ({ topic, partition, message }) => {
                 this.logger.info(`Received message from topic ${topic}`)
 
-                const { headers, value, timestamp, attributes, key, offset, size }: KafkaMessage =
-                    message
+                const { headers, value, timestamp, attributes, key, offset, size }: KafkaMessage = message
 
                 for (const key in headers) {
                     if (headers?.hasOwnProperty(key) && Buffer.isBuffer(headers[key])) {

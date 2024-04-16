@@ -7,7 +7,7 @@ import { KafkaService } from '../core/kafka/kafka.js'
 import ip from 'ip'
 
 export class TodoService {
-    private readonly host: string = process.env.HOST ?? ip.address()
+    private readonly host: string = process.env.HOST ?? `http://${ip.address()}`
     constructor(
         private readonly kafka: KafkaService,
         private readonly client: RedisService,
@@ -15,6 +15,7 @@ export class TodoService {
     ) {}
 
     async createTodo(ctx: ContextType, body: Todo) {
+        const logger = this.logger.Logger(ctx)
         try {
             const headers: Record<string, string> = {
                 session: ctx.session,
@@ -48,7 +49,7 @@ export class TodoService {
 
             await this.client.set(key, JSON.stringify(response))
 
-            this.logger.info('todo.service', { body, record, data: todo }, { session: ctx.session })
+            logger.info('todo.service', { body, record, data: todo })
             return response
         } catch (error) {
             throw new Error(error)
@@ -60,7 +61,7 @@ export class TodoService {
             const todos = await this.client.getKeys('todos::*')
             this.logger.info('todo.service', todos, { session: ctx.session })
             const port = process.env.PORT ?? '3000'
-            const api = `http://${this.host}:${port}/api/v1/todo`
+            const api = `${this.host}:${port}/api/v1/todo`
             return todos.map((key) => {
                 const id = key.split('::')[1]
                 return {
