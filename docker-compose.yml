@@ -1,116 +1,134 @@
 version: '3.9'
 services:
-  broker:
-    image: confluentinc/cp-kafka:7.4.0
-    hostname: broker
-    container_name: broker
-    restart: always
-    healthcheck:
-      test: ["CMD", "kafka-broker-api-versions.sh", "--bootstrap-server", "broker:29092"]
-      interval: 10s
-      timeout: 10s
-      retries: 5
-    ports:
-      - '9092:9092'
-      - '9101:9101'
-    environment:
-      KAFKA_NODE_ID: 1
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
-      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://broker:29092,PLAINTEXT_HOST://broker:9092'
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_JMX_PORT: 9101
-      KAFKA_JMX_HOSTNAME: localhost
-      KAFKA_PROCESS_ROLES: 'broker,controller'
-      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@broker:29093'
-      KAFKA_LISTENERS: 'PLAINTEXT://broker:29092,CONTROLLER://broker:29093,PLAINTEXT_HOST://0.0.0.0:9092'
-      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
-      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
-      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
-      # Replace CLUSTER_ID with a unique base64 UUID using "bin/kafka-storage.sh random-uuid"
-      # See https://docs.confluent.io/kafka/operations-tools/kafka-tools.html#kafka-storage-sh
-      CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
-      KAFKA_CREATE_TOPICS: 'write-logs:1:1,topic1:1:1,create.todos:1:1,update.todos:1:1,delete.todos:1:1'
-  control-center:
-    image: confluentinc/cp-enterprise-control-center:7.4.0
-    hostname: control-center
-    container_name: control-center
-    depends_on:
-      - broker
-    ports:
-      - '9021:9021'
-    environment:
-      CONTROL_CENTER_BOOTSTRAP_SERVERS: 'broker:29092'
-      CONTROL_CENTER_REPLICATION_FACTOR: 1
-      CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS: 1
-      CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_PARTITIONS: 1
-      CONFLUENT_METRICS_TOPIC_REPLICATION: 1
-      PORT: 9021
-  redis:
-    image: redis:6.2.5
-    hostname: redis
-    container_name: redis
-    restart: always
-    ports:
-      - '6379:6379'
-  redislnsight:
-    image: redis/redisinsight:latest
-    hostname: redislnsight
-    container_name: redislnsight
-    restart: always
-    volumes:
-      - ./dist/redisinsight:/data
-    ports:
-      - '8001:5540'
-    environment:
-      REDISINSIGHT_REDIS_URI: 'redis://redis:6379'
-  mongodb:
-    image: mongo:6
-    hostname: mongodb
-    container_name: mongodb
-    restart: always
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: DEV_USER
-      MONGO_INITDB_ROOT_PASSWORD: C3BAD562-8968-4CD4-90CE-43B6E0BA2362
-      MONGO_INITDB_DATABASE: todo
-    ports:
-      - '27017:27017'
-  service-consumer:
-    build: 
-      context: ./services-consumer
-      dockerfile: Dockerfile
-    image: service-consumer
-    container_name: service-consumer
-    restart: always
-    depends_on:
-      - broker
-      - redis
-      - mongodb
-    environment:
-      KAFKA_BROKERS: broker:9092
-      KAFKA_CLIENT_ID: node-app
-      KAFKA_LOG_LEVEL: 4
-      KAFKA_TOPIC: create.todos,update.todos,delete.todos
-      REDIS_URL: redis://redis:6379
-      MONGO_URI: bW9uZ29kYjovL0RFVl9VU0VSOkMzQkFENTYyLTg5NjgtNENENC05MENFLTQzQjZFMEJBMjM2MkBtb25nb2RiOjI3MDE3L3RvZG8/YXV0aFNvdXJjZT1hZG1pbg==
-  service-producer:
-    build: 
-      context: ./services-producer
-      dockerfile: Dockerfile
-    image: service-producer
-    container_name: service-producer
-    restart: always
-    ports:
-      - '3000:3000'
-    depends_on:
-      - broker
-      - redis
-    environment:
-      KAFKA_BROKERS: broker:9092
-      KAFKA_CLIENT_ID: node-app
-      KAFKA_LOG_LEVEL: 4
-      KAFKA_TOPIC: topic1
-      REDIS_URL: redis://redis:6379
-      MONGO_URI: bW9uZ29kYjovL0RFVl9VU0VSOkMzQkFENTYyLTg5NjgtNENENC05MENFLTQzQjZFMEJBMjM2MkBtb25nb2RiOjI3MDE3L3RvZG8/YXV0aFNvdXJjZT1hZG1pbg==
+    broker:
+        image: confluentinc/cp-kafka:7.4.0
+        hostname: broker
+        container_name: broker
+        restart: always
+        healthcheck:
+            test: ['CMD', 'kafka-broker-api-versions.sh', '--bootstrap-server', 'broker:29092']
+            interval: 10s
+            timeout: 10s
+            retries: 5
+        ports:
+            - '9092:9092'
+            - '9101:9101'
+        environment:
+            KAFKA_NODE_ID: 1
+            KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
+            KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://broker:29092,PLAINTEXT_HOST://broker:9092'
+            KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+            KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+            KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+            KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+            KAFKA_JMX_PORT: 9101
+            KAFKA_JMX_HOSTNAME: localhost
+            KAFKA_PROCESS_ROLES: 'broker,controller'
+            KAFKA_CONTROLLER_QUORUM_VOTERS: '1@broker:29093'
+            KAFKA_LISTENERS: 'PLAINTEXT://broker:29092,CONTROLLER://broker:29093,PLAINTEXT_HOST://0.0.0.0:9092'
+            KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+            KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+            KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+            # Replace CLUSTER_ID with a unique base64 UUID using "bin/kafka-storage.sh random-uuid"
+            # See https://docs.confluent.io/kafka/operations-tools/kafka-tools.html#kafka-storage-sh
+            CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
+            KAFKA_CREATE_TOPICS: 'write-logs:1:1,topic1:1:1,create.todos:1:1,update.todos:1:1,delete.todos:1:1'
+    control-center:
+        image: confluentinc/cp-enterprise-control-center:7.4.0
+        hostname: control-center
+        container_name: control-center
+        depends_on:
+            - broker
+        ports:
+            - '9021:9021'
+        environment:
+            CONTROL_CENTER_BOOTSTRAP_SERVERS: 'broker:29092'
+            CONTROL_CENTER_REPLICATION_FACTOR: 1
+            CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS: 1
+            CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_PARTITIONS: 1
+            CONFLUENT_METRICS_TOPIC_REPLICATION: 1
+            PORT: 9021
+    redis:
+        image: redis:6.2.5
+        hostname: redis
+        container_name: redis
+        restart: always
+        ports:
+            - '6379:6379'
+    redislnsight:
+        image: redis/redisinsight:latest
+        hostname: redislnsight
+        container_name: redislnsight
+        restart: always
+        volumes:
+            - ./dist/redisinsight:/data
+        ports:
+            - '8001:5540'
+        environment:
+            REDISINSIGHT_REDIS_URI: 'redis://redis:6379'
+    mongodb:
+        image: mongo:6
+        hostname: mongodb
+        container_name: mongodb
+        restart: always
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: DEV_USER
+            MONGO_INITDB_ROOT_PASSWORD: C3BAD562-8968-4CD4-90CE-43B6E0BA2362
+            MONGO_INITDB_DATABASE: todo
+        ports:
+            - '27017:27017'
+    service-consumer:
+        build:
+            context: ./services-consumer
+            dockerfile: Dockerfile
+        image: service-consumer
+        container_name: service-consumer
+        restart: always
+        depends_on:
+            - broker
+            - redis
+            - mongodb
+        environment:
+            KAFKA_BROKERS: broker:9092
+            KAFKA_CLIENT_ID: node-app
+            KAFKA_LOG_LEVEL: 4
+            KAFKA_TOPIC: create.todos,update.todos,delete.todos
+            REDIS_URL: redis://redis:6379
+            MONGO_URI: bW9uZ29kYjovL0RFVl9VU0VSOkMzQkFENTYyLTg5NjgtNENENC05MENFLTQzQjZFMEJBMjM2MkBtb25nb2RiOjI3MDE3L3RvZG8/YXV0aFNvdXJjZT1hZG1pbg==
+    service-producer:
+        build:
+            context: ./services-producer
+            dockerfile: Dockerfile
+        image: service-producer
+        container_name: service-producer
+        restart: always
+        ports:
+            - '3000:3000'
+        depends_on:
+            - broker
+            - redis
+        environment:
+            KAFKA_BROKERS: broker:9092
+            KAFKA_CLIENT_ID: node-app
+            KAFKA_LOG_LEVEL: 4
+            KAFKA_TOPIC: topic1
+            HOST: http://localhost:3000
+            REDIS_URL: redis://redis:6379
+            MONGO_URI: bW9uZ29kYjovL0RFVl9VU0VSOkMzQkFENTYyLTg5NjgtNENENC05MENFLTQzQjZFMEJBMjM2MkBtb25nb2RiOjI3MDE3L3RvZG8/YXV0aFNvdXJjZT1hZG1pbg==
+    service-http:
+        build:
+            context: ./services-http
+            dockerfile: Dockerfile
+        image: service-http
+        container_name: service-http
+        restart: always
+        ports:
+            - '8080:8080'
+        depends_on:
+            - broker
+            - redis
+            - mongodb
+        environment:
+            HOST: http://localhost:8080
+            REDIS_URL: redis:6379
+            MONGO_URL: bW9uZ29kYjovL0RFVl9VU0VSOkMzQkFENTYyLTg5NjgtNENENC05MENFLTQzQjZFMEJBMjM2MkBtb25nb2RiOjI3MDE3L3RvZG8/YXV0aFNvdXJjZT1hZG1pbg==

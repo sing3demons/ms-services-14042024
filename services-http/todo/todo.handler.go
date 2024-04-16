@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/sing3demons/service-http/cache"
 	"github.com/sing3demons/service-http/mlog"
@@ -38,7 +39,7 @@ type Response struct {
 }
 
 type Task struct {
-	ID          string `json:"id"`
+	ID          string `json:"id" bson:"id"`
 	Href        string `json:"href"`
 	Title       string `json:"title"`
 	Description string `json:"description"`
@@ -74,8 +75,8 @@ func (t *todoHandler) GetTodos(w http.ResponseWriter, r *http.Request) {
 	todos := []Task{}
 	for tasks.Next(ctx) {
 		var todo Task
-		todo.Href = "http://localhost:8080/todos/" + todo.ID
 		tasks.Decode(&todo)
+		todo.Href = os.Getenv("HOST") + "/todos/" + todo.ID
 		todos = append(todos, todo)
 	}
 
