@@ -1,8 +1,15 @@
 import express from 'express'
 import { v4 as uuidv4 } from 'uuid'
 import Context from './context/context.js'
-import { Router } from './root-routes.js'
-const port = process.env.PORT || 3000
+import { Routes } from './root-routes.js'
+import { logger } from './core/logger/utils.js'
+import ip from 'ip'
+
+const port = process.env.PORT ?? '3000'
+if (!port) {
+    process.env['PORT'] = '3000'
+}
+const host = process.env.HOST_IP || ip.address()
 
 const app = express()
 
@@ -21,17 +28,15 @@ app.get('/health', (_req, res) => {
     res.status(200).json({ message: 'OK' })
 })
 
-app.use('/api/v1', Router)
+app.use('/api/v1', Routes)
 
-const server = app.listen(port, () =>
-    console.log('Server is listening on port ' + port)
-)
+const server = app.listen(port, () => logger.info(`Server is running on http://${host}:${port}`))
 
 process.on('SIGTERM', () => {
-    console.log('SIGTERM signal received: closing HTTP server')
+    logger.info('SIGTERM signal received: closing HTTP server')
     server.close(() => process.exit(0))
 })
 process.on('SIGINT', () => {
-    console.log('SIGINT signal received: closing HTTP server')
+    logger.info('SIGINT signal received: closing HTTP server')
     server.close(() => process.exit(0))
 })

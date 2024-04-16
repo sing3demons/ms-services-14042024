@@ -6,10 +6,7 @@ import { CreateLogger } from '../logger/utils.js'
 import { MessageCallback } from './type.js'
 
 const host = process.env.HOST_IP || ip.address()
-
-console.log('host ===================>', host)
-
-const brokers = process.env.KAFKA_BROKERS?.split(',') ?? ['localhost:9092']
+const brokers = process.env.KAFKA_BROKERS?.split(',') ?? [`${host}:9092`]
 const clientId = process.env.KAFKA_CLIENT_ID ?? 'my-app-1'
 const requestTimeout = process.env?.KAFKA_REQUEST_TIMEOUT ?? 30000
 const retry = process.env?.KAFKA_RETRY ?? 8

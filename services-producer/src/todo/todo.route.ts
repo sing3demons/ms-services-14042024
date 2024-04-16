@@ -1,9 +1,9 @@
-import { KafkaService } from '../kafka/kafka.js'
 import { RedisService } from '../redis/redis.js'
 import { Router } from 'express'
 import { TodoService } from './todo.service.js'
 import { TodoController } from './todo.controller.js'
-import Logger from '../logger/index.js'
+import type Logger from '../core/logger/index.js'
+import type { KafkaService } from '../core/kafka/kafka.js'
 
 export class TodoRoute {
     constructor(
@@ -14,11 +14,7 @@ export class TodoRoute {
         this.redisService.connect()
     }
     Register(router: Router) {
-        const todoService = new TodoService(
-            this.kafkaService,
-            this.redisService,
-            this.logger
-        )
+        const todoService = new TodoService(this.kafkaService, this.redisService, this.logger)
         const todoController = new TodoController(todoService, this.logger)
 
         router.post('/todo', todoController.createTodo)

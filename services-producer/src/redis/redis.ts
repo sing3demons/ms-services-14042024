@@ -1,22 +1,20 @@
 import { createClient, RedisClientType, SetOptions } from 'redis'
+import Logger from '../core/logger/index.js'
+import ip from 'ip'
 
-const url = process.env.REDIS_URL || 'redis://localhost:6379'
+const host = process.env.HOST_IP || ip.address()
+const url = process.env.REDIS_URL || `redis://${host}:6379`
 
 export class RedisService {
     private client: RedisClientType
-
-    constructor() {
+    constructor(private readonly logger: Logger) {
         this.client = createClient({
             url,
             socket: {
-                // host: 'localhost',
-                // port: 6379,
                 connectTimeout: 10000,
                 reconnectStrategy: (retries: number) => {
                     if (retries > 20) {
-                        console.log(
-                            'Too many attempts to reconnect. Redis connection was terminated'
-                        )
+                        this.logger.error('Too many attempts to reconnect. Redis connection was terminated')
                         return new Error('Too many retries.')
                     } else {
                         return retries * 500
@@ -25,10 +23,12 @@ export class RedisService {
             },
         })
 
-        this.client.on('connect', async () => console.log('redis connected'))
+        this.client.on('connect', async () => {
+            this.logger.info('Connected to Redis', { url })
+        })
 
         this.client.on('error', (error) => {
-            console.error(error)
+            this.logger.error('Error in Redis connection', { error })
         })
     }
 
@@ -42,13 +42,11 @@ export class RedisService {
 
     async getKeys(pattern: string) {
         const keys = await this.client.keys(pattern)
-        console.log(`Get keys with pattern ${pattern}`, { keys })
         return keys
     }
 
     async getAllKeys() {
         const keys = await this.client.keys('*')
-        console.log(`Get all keys`, { keys })
         return keys
     }
 
@@ -58,17 +56,16 @@ export class RedisService {
             options.EX = timeout * 1000
         }
         const record = await this.client.set(key, value, options)
-        console.log(`Set key ${key} with value ${value}`, { record })
+        return record
     }
 
     async get(key: string) {
         const record = await this.client.get(key)
-        console.log(`Get key ${key}`, { record })
         return record
     }
 
     async delete(key: string) {
         const record = await this.client.del(key)
-        console.log(`Delete key ${key}`, { record })
+        return record
     }
 }

@@ -1,13 +1,10 @@
 import type { Request, Response } from 'express'
 import Context from '../context/context.js'
 import { TodoService } from './todo.service.js'
-import Logger from '../logger/index.js'
+import Logger from '../core/logger/index.js'
 
 export class TodoController {
-    constructor(
-        private readonly todoService: TodoService,
-        private readonly logger: Logger
-    ) { }
+    constructor(private readonly todoService: TodoService, private readonly logger: Logger) {}
 
     createTodo = async (req: Request, res: Response) => {
         const ctx = Context.get()
@@ -34,8 +31,10 @@ export class TodoController {
             res.status(200).json(todos)
         } catch (error) {
             if (error instanceof Error) {
+                logger.error('todo.controller', error)
                 res.status(400).json({ message: error.message })
             } else {
+                logger.error('todo.controller', error)
                 res.status(500).json({ message: 'Internal server error' })
             }
         }
@@ -45,14 +44,16 @@ export class TodoController {
         const ctx = Context.get()
         const logger = this.logger.Logger(ctx)
         try {
-            console.log('req.params.id', req.params.id)
-            const todo = await this.todoService.getTodo(ctx, req.params.id as string)
+            const { id } = req.params as { id: string }
+            const todo = await this.todoService.getTodo(ctx, id)
             logger.info('todo.controller', todo)
             res.status(200).json(todo)
         } catch (error) {
             if (error instanceof Error) {
+                logger.error('todo.controller', error)
                 res.status(400).json({ message: error.message })
             } else {
+                logger.error('todo.controller', error)
                 res.status(500).json({ message: 'Internal server error' })
             }
         }

@@ -1,16 +1,16 @@
-import { KafkaService } from '../kafka/kafka.js'
 import { v4 as uuid } from 'uuid'
 import { Todo } from './todo.model.js'
 import { ContextType } from '../context/context.js'
 import { RedisService } from '../redis/redis.js'
-import Logger from '../logger/index.js'
+import Logger from '../core/logger/index.js'
+import { KafkaService } from '../core/kafka/kafka.js'
 
 export class TodoService {
     constructor(
         private readonly kafka: KafkaService,
         private readonly client: RedisService,
         private readonly logger: Logger
-    ) { }
+    ) {}
 
     async createTodo(ctx: ContextType, body: Todo) {
         try {
@@ -46,11 +46,7 @@ export class TodoService {
 
             await this.client.set(key, JSON.stringify(response))
 
-            this.logger.info(
-                'todo.service',
-                { body, record, data: todo },
-                { session: ctx.session }
-            )
+            this.logger.info('todo.service', { body, record, data: todo }, { session: ctx.session })
             return response
         } catch (error) {
             throw new Error(error)
