@@ -29,7 +29,7 @@ func NewMicroservice() Microservice {
 	return &muxRouter{r}
 }
 
-func GetLocalIP() net.IP {
+func (m *muxRouter) getLocalIP() net.IP {
 	conn, err := net.Dial("udp", "8.8.8.8:80")
 	if err != nil {
 		log.Fatal(err)
@@ -49,7 +49,7 @@ func (m *muxRouter) StartHTTP(port string) error {
 		WriteTimeout: 10 * time.Second,
 	}
 
-	host := GetLocalIP()
+	host := m.getLocalIP()
 	log.Printf("starting server at %s", fmt.Sprintf("http://%s%s", host, port))
 
 	go func() {

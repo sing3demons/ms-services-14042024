@@ -11,6 +11,8 @@ import (
 
 type Cacher interface {
 	Close() error
+	Get(ctx context.Context, key string) (string, error)
+	Set(ctx context.Context, key string, value any, exp uint) (string, error)
 }
 
 type cacher struct {
@@ -41,7 +43,6 @@ func (c *cacher) Close() error {
 
 func (c *cacher) Get(ctx context.Context, key string) (string, error) {
 	statusCmd := c.Client.Get(ctx, key)
-	// c.logger.Debug("get key", slog.String("key", key), slog.String("value", statusCmd.String()))
 	c.logger.Debug("get key", logger.Fields{
 		"key":   key,
 		"value": statusCmd.String(),
@@ -49,8 +50,8 @@ func (c *cacher) Get(ctx context.Context, key string) (string, error) {
 	return statusCmd.Result()
 }
 
-func (c *cacher) Set(ctx context.Context, key string, value any, expiration time.Duration) (string, error) {
-	statusCmd := c.Client.Set(ctx, key, value, expiration)
+func (c *cacher) Set(ctx context.Context, key string, value any, exp uint) (string, error) {
+	statusCmd := c.Client.Set(ctx, key, value, time.Duration(exp))
 	c.logger.Debug("get key", logger.Fields{
 		"key":    key,
 		"value":  value.(string),
