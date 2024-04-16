@@ -4,8 +4,10 @@ import { ContextType } from '../context/context.js'
 import { RedisService } from '../redis/redis.js'
 import Logger from '../core/logger/index.js'
 import { KafkaService } from '../core/kafka/kafka.js'
+import ip from 'ip'
 
 export class TodoService {
+    private readonly host: string = process.env.HOST ?? ip.address()
     constructor(
         private readonly kafka: KafkaService,
         private readonly client: RedisService,
@@ -57,9 +59,8 @@ export class TodoService {
         try {
             const todos = await this.client.getKeys('todos::*')
             this.logger.info('todo.service', todos, { session: ctx.session })
-            const host = process.env.HOST ?? 'http://localhost'
             const port = process.env.PORT ?? '3000'
-            const api = `${host}:${port}/api/v1/todo`
+            const api = `http://${this.host}:${port}/api/v1/todo`
             return todos.map((key) => {
                 const id = key.split('::')[1]
                 return {
@@ -76,8 +77,10 @@ export class TodoService {
         try {
             const key = `todos::${id}`
             const todo = await this.client.get(key)
-            this.logger.info('todo.service', todo ? JSON.parse(todo) : {}, { session: ctx.session })
-            return todo ? JSON.parse(todo) : {}
+            const response = todo ? (JSON.parse(todo) as Todo) : {}
+
+            this.logger.info('todo.service', response, { session: ctx.session })
+            return response
         } catch (error) {
             throw new Error(error)
         }
