@@ -2,7 +2,9 @@ package routes
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -27,6 +29,18 @@ func NewMicroservice() Microservice {
 	return &muxRouter{r}
 }
 
+func GetLocalIP() net.IP {
+	conn, err := net.Dial("udp", "8.8.8.8:80")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+
+	localAddress := conn.LocalAddr().(*net.UDPAddr)
+
+	return localAddress.IP
+}
+
 func (m *muxRouter) StartHTTP(port string) error {
 	s := &http.Server{
 		Addr:         port,
@@ -35,7 +49,8 @@ func (m *muxRouter) StartHTTP(port string) error {
 		WriteTimeout: 10 * time.Second,
 	}
 
-	log.Printf("starting server at %s", port)
+	host := GetLocalIP()
+	log.Printf("starting server at %s", fmt.Sprintf("http://%s%s", host, port))
 
 	go func() {
 		err := s.ListenAndServe()
