@@ -88,6 +88,7 @@ class ServiceManager {
 }
 
 async function main() {
+    
     const mongoService = new MongoService()
     await mongoService.connect()
     const mongoClient = mongoService.getClient()

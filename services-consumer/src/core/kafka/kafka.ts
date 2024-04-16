@@ -1,9 +1,13 @@
 import { Admin, IHeaders, Kafka, KafkaConfig, KafkaMessage, logLevel, Message } from 'kafkajs'
 import { v4 as uuid } from 'uuid'
-import { logger } from '../logger/winston.js'
+import ip from 'ip'
 import Logger from '../logger/index.js'
+import { CreateLogger } from '../logger/utils.js'
+import { MessageCallback } from './type.js'
 
-type MessageCallback = (ctx: Record<string, string>, topic: string, message: string) => void
+const host = process.env.HOST_IP || ip.address()
+
+console.log('host ===================>', host)
 
 const brokers = process.env.KAFKA_BROKERS?.split(',') ?? ['localhost:9092']
 const clientId = process.env.KAFKA_CLIENT_ID ?? 'my-app-1'
@@ -23,6 +27,7 @@ const kafkaConfig: KafkaConfig = {
     connectionTimeout: 3000,
     logLevel: Number(logLevelKafka),
     logCreator: (_logLevel: logLevel) => {
+        const logger = CreateLogger()
         return ({
             level,
             log,
