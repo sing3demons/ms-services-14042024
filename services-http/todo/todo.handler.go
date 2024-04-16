@@ -7,14 +7,15 @@ import (
 	"os"
 
 	"github.com/sing3demons/service-http/cache"
+	"github.com/sing3demons/service-http/logger"
 	"github.com/sing3demons/service-http/mlog"
 	"github.com/sing3demons/service-http/store"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
 type todoHandler struct {
-	logger *slog.Logger
-	rdb    *cache.Cacher
+	logger logger.ILogger
+	rdb    cache.Cacher
 	client *store.Store
 }
 
@@ -22,7 +23,7 @@ type TodoHandler interface {
 	GetTodos(w http.ResponseWriter, r *http.Request)
 }
 
-func NewTodoHandler(logger *slog.Logger, rdb *cache.Cacher, mongoClient *store.Store) TodoHandler {
+func NewTodoHandler(logger logger.ILogger, rdb cache.Cacher, mongoClient *store.Store) TodoHandler {
 	return &todoHandler{
 		logger: logger,
 		rdb:    rdb,

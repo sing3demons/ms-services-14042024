@@ -14,7 +14,7 @@ import (
 func main() {
 	logger := logger.New()
 
-	rdb := cache.NewCacher()
+	rdb := cache.NewCacher(logger)
 	defer rdb.Close()
 
 	mongoClient := store.NewStore()

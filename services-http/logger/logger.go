@@ -6,10 +6,24 @@ import (
 	"os"
 )
 
-func New() *slog.Logger {
+type ILogger interface {
+	Debug(msg string, fields ...Fields)
+	Info(msg string, fields ...Fields)
+	Warn(msg string, fields ...Fields)
+	Error(msg string, fields ...Fields)
+	With(args ...any) ILogger
+}
+
+type Fields map[string]any
+
+type LoggerService struct {
+	log *slog.Logger
+}
+
+func New() ILogger {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout,
 		&slog.HandlerOptions{
-			Level: slog.LevelDebug,
+			Level: setLogLevel(),
 			ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
 				if a.Key == "time" {
 					return slog.Attr{Key: "@timestamp", Value: a.Value}
@@ -20,7 +34,52 @@ func New() *slog.Logger {
 
 	slog.SetDefault(logger)
 
-	return logger
+	return &LoggerService{log: logger}
+}
+
+func (l *LoggerService) With(args ...any) ILogger {
+	return &LoggerService{log: l.log.With(args...)}
+
+}
+
+func (l *LoggerService) Info(msg string, fields ...Fields) {
+	var attrs []any
+	for _, field := range fields {
+		for k, v := range field {
+			attrs = append(attrs, slog.String(k, v.(string)))
+		}
+	}
+	l.log.Info(msg, attrs...)
+}
+
+func (l *LoggerService) Debug(msg string, fields ...Fields) {
+	var attrs []any
+	for _, field := range fields {
+		for k, v := range field {
+			attrs = append(attrs, slog.String(k, v.(string)))
+		}
+	}
+	l.log.Debug(msg, attrs...)
+}
+
+func (l *LoggerService) Warn(msg string, fields ...Fields) {
+	var attrs []any
+	for _, field := range fields {
+		for k, v := range field {
+			attrs = append(attrs, slog.String(k, v.(string)))
+		}
+	}
+	l.log.Warn(msg, attrs...)
+}
+
+func (l *LoggerService) Error(msg string, fields ...Fields) {
+	var attrs []any
+	for _, field := range fields {
+		for k, v := range field {
+			attrs = append(attrs, slog.String(k, v.(string)))
+		}
+	}
+	l.log.Error(msg, attrs...)
 }
 
 type TeeWriter struct {
@@ -62,4 +121,20 @@ func NewTeeWriter() *slog.Logger {
 	logger := slog.New(h)
 	slog.SetDefault(logger)
 	return logger
+}
+
+func setLogLevel() slog.Leveler {
+	logLevel := os.Getenv("LOG_LEVEL")
+	switch logLevel {
+	case "debug":
+		return slog.LevelDebug
+	case "info":
+		return slog.LevelInfo
+	case "warn":
+		return slog.LevelWarn
+	case "error":
+		return slog.LevelError
+	default:
+		return slog.LevelDebug
+	}
 }
