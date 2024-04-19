@@ -4,6 +4,7 @@ import Context from './context/context.js'
 import { Routes } from './root-routes.js'
 import { logger } from './core/logger/utils.js'
 import { host, port } from './config.js'
+import { httpLogger } from './core/middleware/index.js'
 
 const app = express()
 
@@ -14,6 +15,8 @@ app.use((req, _res, next) => {
     Context.bind(req)
     next()
 })
+
+app.use(httpLogger)
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))

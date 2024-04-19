@@ -30,7 +30,7 @@ export class TodoService {
                 id,
                 title: body.title,
                 description: body.description,
-                done: false,
+                completed: false,
                 startDate: body.startDate,
                 endDate: body.endDate,
                 status: body.status,

@@ -6,10 +6,10 @@ export enum Status {
 }
 
 export interface Todo {
-    id: string
+    id?: string
     title: string
     description?: string
-    done: boolean
+    completed: boolean
     startDate: string
     endDate: string
     status: Status
@@ -20,10 +20,10 @@ export const paramsSchema = z.object({
 })
 
 export const todoSchema = z.object({
-    id: z.string(),
+    id: z.string().optional(),
     title: z.string(),
     description: z.string().optional(),
-    done: z.boolean(),
+    completed: z.boolean(),
     startDate: z.string(),
     endDate: z.string(),
     status: z.nativeEnum(Status),
