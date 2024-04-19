@@ -40,11 +40,11 @@ export class TodoController {
         }
     }
 
-    getTodo = async (req: Request, res: Response) => {
+    getTodo = async (req: Request<{ id: string }>, res: Response) => {
         const ctx = Context.get()
         const logger = this.logger.Logger(ctx)
         try {
-            const { id } = req.params as { id: string }
+            const { id } = req.params
             const todo = await this.todoService.getTodo(ctx, id)
             logger.info('todo.controller', todo)
             res.status(200).json(todo)
