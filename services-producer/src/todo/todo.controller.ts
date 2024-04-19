@@ -2,6 +2,7 @@ import type { Request, Response } from 'express'
 import Context from '../context/context.js'
 import { TodoService } from './todo.service.js'
 import Logger from '../core/logger/index.js'
+import { paramsSchema, todoSchema } from './todo.model.js'
 
 export class TodoController {
     constructor(private readonly todoService: TodoService, private readonly logger: Logger) {}
@@ -10,7 +11,7 @@ export class TodoController {
         const ctx = Context.get()
         const logger = this.logger.Logger(ctx)
         try {
-            const todo = await this.todoService.createTodo(ctx, req.body)
+            const todo = await this.todoService.createTodo(ctx, todoSchema.parse(req.body))
             logger.info('todo.controller', todo)
             res.status(201).json(todo)
         } catch (error) {
@@ -40,11 +41,11 @@ export class TodoController {
         }
     }
 
-    getTodo = async (req: Request<{ id: string }>, res: Response) => {
+    getTodo = async (req: Request, res: Response) => {
         const ctx = Context.get()
         const logger = this.logger.Logger(ctx)
         try {
-            const { id } = req.params
+            const { id } = paramsSchema.parse(req.params)
             const todo = await this.todoService.getTodo(ctx, id)
             logger.info('todo.controller', todo)
             res.status(200).json(todo)
