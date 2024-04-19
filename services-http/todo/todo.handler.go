@@ -3,7 +3,6 @@ package todo
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -34,17 +33,6 @@ func response(w http.ResponseWriter) *Response {
 
 type Response struct {
 	w http.ResponseWriter
-}
-
-type Task struct {
-	ID          string `json:"id" bson:"id"`
-	Href        string `json:"href"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Done        bool   `json:"done"`
-	StartDate   string `json:"startDate"`
-	EndDate     string `json:"endDate"`
-	Status      string `json:"status"`
 }
 
 func (r *Response) JSON(statusCode int, data any) error {
@@ -101,7 +89,6 @@ func (t *todoHandler) GetTodos(w http.ResponseWriter, r *http.Request) {
 		tq.Order = -1
 	}
 
-	fmt.Println("===============================================================query ==========>", tq)
 	todos, err := t.taskService.GetTodos(ctx, tq, log)
 
 	if err != nil {

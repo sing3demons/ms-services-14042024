@@ -2,7 +2,6 @@ package todo
 
 import (
 	"context"
-	"fmt"
 	"os"
 
 	"github.com/sing3demons/service-http/logger"
@@ -12,7 +11,7 @@ import (
 )
 
 type TaskRepository interface {
-	GetTodos(ctx context.Context, filter TaskQuery, log logger.ILogger) ([]Task, error)
+	GetTodos(ctx context.Context, filter TaskQuery, log logger.ILogger) ([]Task, int64, error)
 }
 
 type taskRepository struct {
@@ -23,7 +22,7 @@ func NewTaskRepository(client *store.Store) TaskRepository {
 	return &taskRepository{client}
 }
 
-func (t *taskRepository) GetTodos(ctx context.Context, tq TaskQuery, log logger.ILogger) ([]Task, error) {
+func (t *taskRepository) GetTodos(ctx context.Context, tq TaskQuery, log logger.ILogger) ([]Task, int64, error) {
 	log.Info("TaskRepository GetTodos")
 	col := t.client.Database("todo").Collection("tasks")
 
@@ -54,7 +53,7 @@ func (t *taskRepository) GetTodos(ctx context.Context, tq TaskQuery, log logger.
 		log.Error("GetTodos", logger.Fields{
 			"error": err,
 		})
-		return nil, err
+		return nil, 0, err
 	}
 
 	defer cur.Close(ctx)
@@ -67,7 +66,13 @@ func (t *taskRepository) GetTodos(ctx context.Context, tq TaskQuery, log logger.
 		todos = append(todos, todo)
 	}
 
-	fmt.Println("=============================>", todos)
+	total, err := col.CountDocuments(ctx, filter)
+	if err != nil {
+		log.Error("GetTodos", logger.Fields{
+			"error": err,
+		})
+		return nil, 0, err
+	}
 
-	return todos, nil
+	return todos, total, nil
 }

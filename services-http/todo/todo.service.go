@@ -3,14 +3,13 @@ package todo
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/sing3demons/service-http/cache"
 	"github.com/sing3demons/service-http/logger"
 )
 
 type TaskService interface {
-	GetTodos(ctx context.Context, filter TaskQuery, log logger.ILogger) ([]Task, error)
+	GetTodos(ctx context.Context, filter TaskQuery, log logger.ILogger) (ResponseData[[]Task], error)
 }
 
 type taskService struct {
@@ -22,19 +21,10 @@ func NewTaskService(repo TaskRepository, rdb cache.Cacher) TaskService {
 	return &taskService{repo, rdb}
 }
 
-type TaskQuery struct {
-	Status   string `json:"status"`
-	Page     int    `json:"page"`
-	PageSize int    `json:"pageSize"`
-	Sort     string `json:"sort"`
-	Order    int `json:"order"`
-}
-
-func (t *taskService) GetTodos(ctx context.Context, filter TaskQuery, log logger.ILogger) ([]Task, error) {
+func (t *taskService) GetTodos(ctx context.Context, filter TaskQuery, log logger.ILogger) (ResponseData[[]Task], error) {
 	log.Debug("TaskService GetTodos ==========>")
-	fmt.Println("=====================================TaskService filter ==========>", filter)
 
-	todos := []Task{}
+	response := ResponseData[[]Task]{}
 
 	s, err := t.rdb.Get(ctx, "todos")
 	log.Debug("==============>get todos from cache", logger.Fields{
@@ -51,11 +41,11 @@ func (t *taskService) GetTodos(ctx context.Context, filter TaskQuery, log logger
 			"todos": s,
 		})
 
-		json.Unmarshal([]byte(s), &todos)
-		return todos, nil
+		json.Unmarshal([]byte(s), &response)
+		return response, nil
 	}
 
-	todos, err = t.repo.GetTodos(ctx, filter, log)
+	todos, total, err := t.repo.GetTodos(ctx, filter, log)
 	log.Debug("get todos from db", logger.Fields{
 		"todos": todos,
 		"err":   err,
@@ -64,20 +54,25 @@ func (t *taskService) GetTodos(ctx context.Context, filter TaskQuery, log logger
 		log.Error("GetTodos", logger.Fields{
 			"error": err,
 		})
-		return nil, err
+		return ResponseData[[]Task]{}, err
 	}
 
 	if len(todos) == 0 {
 		log.Debug("no todos found")
-		return todos, nil
+		return ResponseData[[]Task]{}, nil
 	}
 
-	value, err := json.Marshal(todos)
+	response.Items = todos
+	response.Total = total
+	response.Page = filter.Page
+	response.PageSize = filter.PageSize
+
+	value, err := json.Marshal(response)
 	if err != nil {
 		log.Error("failed to marshal todos", logger.Fields{
 			"error": err,
 		})
-		return nil, err
+		return ResponseData[[]Task]{}, err
 	}
 
 	result, err := t.rdb.Set(ctx, "todos", value, 1)
@@ -85,12 +80,12 @@ func (t *taskService) GetTodos(ctx context.Context, filter TaskQuery, log logger
 		log.Error("failed to set todos to cache", logger.Fields{
 			"error": err,
 		})
-		return nil, err
+		return ResponseData[[]Task]{}, err
 	}
 
 	log.Debug("set todos to cache", logger.Fields{
 		"result": result,
 	})
 
-	return todos, nil
+	return response, nil
 }
