@@ -1,15 +1,12 @@
 import { createClient, RedisClientType, SetOptions } from 'redis'
 import Logger from '../core/logger/index.js'
-import ip from 'ip'
-
-const host = process.env.HOST_IP || ip.address()
-const url = process.env.REDIS_URL || `redis://${host}:6379`
+import { redis_url } from '../config.js'
 
 export class RedisService {
     private client: RedisClientType
     constructor(private readonly logger: Logger) {
         this.client = createClient({
-            url,
+            url: redis_url,
             socket: {
                 connectTimeout: 10000,
                 reconnectStrategy: (retries: number) => {
@@ -24,7 +21,7 @@ export class RedisService {
         })
 
         this.client.on('connect', async () => {
-            this.logger.info('Connected to Redis', { url })
+            this.logger.info('Connected to Redis', { url: redis_url })
         })
 
         this.client.on('error', (error) => {

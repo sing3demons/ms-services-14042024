@@ -4,10 +4,10 @@ import { ContextType } from '../context/context.js'
 import { RedisService } from '../redis/redis.js'
 import Logger from '../core/logger/index.js'
 import { KafkaService } from '../core/kafka/kafka.js'
-import ip from 'ip'
+import { host_url } from '../config.js'
 
 export class TodoService {
-    private readonly host: string = process.env.HOST ?? `http://${ip.address()}`
+    private readonly host: string = host_url
     constructor(
         private readonly kafka: KafkaService,
         private readonly client: RedisService,

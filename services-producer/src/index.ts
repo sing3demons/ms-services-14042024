@@ -3,13 +3,7 @@ import { v4 as uuidv4 } from 'uuid'
 import Context from './context/context.js'
 import { Routes } from './root-routes.js'
 import { logger } from './core/logger/utils.js'
-import ip from 'ip'
-
-const port = process.env.PORT ?? '3000'
-if (!port) {
-    process.env['PORT'] = '3000'
-}
-const host = process.env.HOST_IP || ip.address()
+import { host, port } from './config.js'
 
 const app = express()
 
