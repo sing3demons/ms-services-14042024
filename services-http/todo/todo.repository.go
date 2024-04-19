@@ -3,6 +3,7 @@ package todo
 import (
 	"context"
 	"os"
+	"sync"
 
 	"github.com/sing3demons/service-http/logger"
 	"github.com/sing3demons/service-http/store"
@@ -48,6 +49,12 @@ func (t *taskRepository) GetTodos(ctx context.Context, tq TaskQuery, log logger.
 		filter["status"] = tq.Status
 	}
 
+	var wg sync.WaitGroup
+	var mutex sync.Mutex
+	todos := []Task{}
+	var total int64
+
+	errCh := make(chan error, 2)
 	cur, err := col.Find(ctx, filter, opts)
 	if err != nil {
 		log.Error("GetTodos", logger.Fields{
@@ -56,22 +63,46 @@ func (t *taskRepository) GetTodos(ctx context.Context, tq TaskQuery, log logger.
 		return nil, 0, err
 	}
 
-	defer cur.Close(ctx)
+	// Goroutine for fetching todos
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for cur.Next(ctx) {
+			var todo Task
+			if err := cur.Decode(&todo); err != nil {
+				errCh <- err
+				return
+			}
+			todo.Href = os.Getenv("HOST") + "/todos/" + todo.ID
+			mutex.Lock()
+			todos = append(todos, todo)
+			mutex.Unlock()
+		}
+	}()
 
-	todos := []Task{}
-	for cur.Next(ctx) {
-		var todo Task
-		cur.Decode(&todo)
-		todo.Href = os.Getenv("HOST") + "/todos/" + todo.ID
-		todos = append(todos, todo)
-	}
+	// Goroutine for counting total documents
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		var err error
+		total, err = col.CountDocuments(ctx, filter)
+		if err != nil {
+			errCh <- err
+		}
+	}()
 
-	total, err := col.CountDocuments(ctx, filter)
-	if err != nil {
-		log.Error("GetTodos", logger.Fields{
-			"error": err,
-		})
-		return nil, 0, err
+	// Wait for goroutines to finish
+	wg.Wait()
+	close(errCh)
+
+	// Check for errors
+	for err := range errCh {
+		if err != nil {
+			log.Error("GetTodos", logger.Fields{
+				"error": err,
+			})
+			return nil, 0, err
+		}
 	}
 
 	return todos, total, nil
