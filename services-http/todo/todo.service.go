@@ -3,13 +3,14 @@ package todo
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/sing3demons/service-http/cache"
 	"github.com/sing3demons/service-http/logger"
 )
 
 type TaskService interface {
-	GetTodos(ctx context.Context, filter any, log logger.ILogger) ([]Task, error)
+	GetTodos(ctx context.Context, filter TaskQuery, log logger.ILogger) ([]Task, error)
 }
 
 type taskService struct {
@@ -21,8 +22,18 @@ func NewTaskService(repo TaskRepository, rdb cache.Cacher) TaskService {
 	return &taskService{repo, rdb}
 }
 
-func (t *taskService) GetTodos(ctx context.Context, filter any, log logger.ILogger) ([]Task, error) {
+type TaskQuery struct {
+	Status   string `json:"status"`
+	Page     int    `json:"page"`
+	PageSize int    `json:"pageSize"`
+	Sort     string `json:"sort"`
+	Order    int `json:"order"`
+}
+
+func (t *taskService) GetTodos(ctx context.Context, filter TaskQuery, log logger.ILogger) ([]Task, error) {
 	log.Debug("TaskService GetTodos ==========>")
+	fmt.Println("=====================================TaskService filter ==========>", filter)
+
 	todos := []Task{}
 
 	s, err := t.rdb.Get(ctx, "todos")
@@ -69,7 +80,7 @@ func (t *taskService) GetTodos(ctx context.Context, filter any, log logger.ILogg
 		return nil, err
 	}
 
-	result, err := t.rdb.Set(ctx, "todos", value, 0)
+	result, err := t.rdb.Set(ctx, "todos", value, 1)
 	if err != nil {
 		log.Error("failed to set todos to cache", logger.Fields{
 			"error": err,

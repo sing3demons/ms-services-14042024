@@ -3,12 +3,13 @@ package todo
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/sing3demons/service-http/logger"
 	"github.com/sing3demons/service-http/mlog"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 type todoHandler struct {
@@ -59,8 +60,49 @@ func (t *todoHandler) GetTodos(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 	log := mlog.L(ctx)
+
+	tq := TaskQuery{
+		Page:     1,
+		PageSize: 10,
+		Sort:     "id",
+		Order:    1,
+	}
+
 	log.Info("HandlerService :: start================>")
-	todos, err := t.taskService.GetTodos(ctx, bson.M{}, log)
+	status := r.URL.Query().Get("status")
+	page := r.URL.Query().Get("page")
+	pageSize := r.URL.Query().Get("pageSize")
+	sort := r.URL.Query().Get("sort")
+	order := r.URL.Query().Get("order")
+
+	tq.Status = status
+	if page != "" {
+		p, err := strconv.Atoi(page)
+		if err != nil {
+			log.Error("HandlerService ::  ===> get page", logger.Fields{"error": err})
+			p = 1
+		}
+		tq.Page = p
+	}
+	if pageSize != "" {
+		ps, err := strconv.Atoi(pageSize)
+		if err != nil {
+			log.Error("HandlerService ::  ===> get pageSize", logger.Fields{"error": err})
+			ps = 10
+		}
+		tq.PageSize = ps
+	}
+
+	if sort != "" {
+		tq.Sort = sort
+	}
+
+	if order == "desc" {
+		tq.Order = -1
+	}
+
+	fmt.Println("===============================================================query ==========>", tq)
+	todos, err := t.taskService.GetTodos(ctx, tq, log)
 
 	if err != nil {
 		log.Error("HandlerService ::  ===> get all todos", logger.Fields{
