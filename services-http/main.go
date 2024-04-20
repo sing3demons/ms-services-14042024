@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/sing3demons/service-http/cache"
+	"github.com/sing3demons/service-http/healthchk"
 	"github.com/sing3demons/service-http/logger"
 	"github.com/sing3demons/service-http/mlog"
 	"github.com/sing3demons/service-http/routes"
@@ -22,6 +23,9 @@ func main() {
 
 	r := routes.NewMicroservice()
 	r.Use(mlog.Middleware(logger))
+
+	hHealthChk := healthchk.New(mongoClient)
+	r.GET("/healthz", hHealthChk.HealthCheck)
 
 	todoRepository := todo.NewTaskRepository(mongoClient)
 	todoService := todo.NewTaskService(todoRepository, rdb)

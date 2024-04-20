@@ -5,8 +5,10 @@ import { Routes } from './root-routes.js'
 import { logger } from './core/logger/utils.js'
 import { host, port } from './config.js'
 import { httpLogger } from './core/middleware/index.js'
+import helmet from 'helmet'
 
 const app = express()
+app.use(helmet())
 
 app.use((req, _res, next) => {
     if (!req.headers['x-session']) {
