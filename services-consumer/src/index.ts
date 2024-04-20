@@ -3,8 +3,7 @@ import { RedisService } from './core/redis/redis.js'
 import MongoService from './core/mongo/index.js'
 import { Collection, MongoClient } from 'mongodb'
 import Logger from './core/logger/index.js'
-
-const topic = process.env.KAFKA_TOPIC || 'create.todos'
+import { topics } from './config.js'
 
 export enum Status {
     ACTIVE = 'active',
@@ -28,11 +27,7 @@ class ServiceManager {
         private readonly logger: Logger
     ) {}
 
-    consumer = async (
-        ctx: Record<string, string>,
-        topic: string,
-        message: string
-    ) => {
+    consumer = async (ctx: Record<string, string>, topic: string, message: string) => {
         const logger = this.logger.Logger(ctx)
         const db = this.client.db('todo')
         logger.info('Received message from topic', { topic, message })
@@ -63,22 +58,14 @@ class ServiceManager {
             }
 
             const insertOneResult = await col.insertOne(payload)
-            const update = await this.redis.set(
-                key,
-                JSON.stringify(response),
-                60
-            )
+            const update = await this.redis.set(key, JSON.stringify(response), 60)
             return {
                 insertOneResult,
                 update,
                 response,
             }
         } catch (error) {
-            await this.redis.set(
-                key,
-                JSON.stringify({ status: 'error', data: payload }),
-                60
-            )
+            await this.redis.set(key, JSON.stringify({ status: 'error', data: payload }), 60)
             if (error instanceof Error) {
                 throw new Error(error.message)
             }
@@ -88,11 +75,9 @@ class ServiceManager {
 }
 
 async function main() {
-    
     const mongoService = new MongoService()
     await mongoService.connect()
     const mongoClient = mongoService.getClient()
-    const topics = topic.split(',')
 
     const redisClient = new RedisService()
     await redisClient.connect()

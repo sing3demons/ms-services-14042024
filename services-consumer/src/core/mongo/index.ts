@@ -1,8 +1,5 @@
 import { Collection, MongoClient } from 'mongodb'
-
-const b64string =
-    process.env.MONGO_URI ??
-    'bW9uZ29kYjovL0RFVl9VU0VSOkMzQkFENTYyLTg5NjgtNENENC05MENFLTQzQjZFMEJBMjM2MkBsb2NhbGhvc3Q6MjcwMTcvdG9kbz9hdXRoU291cmNlPWFkbWlu'
+import { b64string } from 'src/config'
 
 export default class MongoService {
     private client: MongoClient
@@ -29,8 +26,6 @@ export default class MongoService {
     }
 
     getCollection<T extends object>(collection: string = 'tasks'): Collection<T> {
-        return this.client.db('todo').collection(collection);
+        return this.client.db('todo').collection(collection)
     }
-
-
 }

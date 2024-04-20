@@ -1,17 +1,9 @@
 import { Admin, IHeaders, Kafka, KafkaConfig, KafkaMessage, logLevel, Message } from 'kafkajs'
 import { v4 as uuid } from 'uuid'
-import ip from 'ip'
 import Logger from '../logger/index.js'
 import { CreateLogger } from '../logger/utils.js'
 import { MessageCallback } from './type.js'
-
-const host = process.env.HOST_IP || ip.address()
-const brokers = process.env.KAFKA_BROKERS?.split(',') ?? [`${host}:9092`]
-const clientId = process.env.KAFKA_CLIENT_ID ?? 'my-app-1'
-const requestTimeout = process.env?.KAFKA_REQUEST_TIMEOUT ?? 30000
-const retry = process.env?.KAFKA_RETRY ?? 8
-const initialRetryTime = process.env?.KAFKA_INITIAL_RETRY_TIME ?? 100
-const logLevelKafka = process.env?.KAFKA_LOG_LEVEL ?? 4
+import { brokers, clientId, groupId, initialRetryTime, logLevelKafka, requestTimeout, retry } from 'src/config.js'
 
 const kafkaConfig: KafkaConfig = {
     clientId: clientId,
@@ -51,13 +43,11 @@ const kafkaConfig: KafkaConfig = {
 }
 
 export class KafkaService {
-    // private logger: Logger
     private admin: Admin
     private kafka: Kafka
 
     constructor(private readonly logger: Logger) {
         this.kafka = new Kafka(kafkaConfig)
-        // this.logger = this.kafka.logger()
         this.admin = this.kafka.admin()
         this.logger.info('KafkaService initialized')
     }
@@ -131,9 +121,7 @@ export class KafkaService {
     }
 
     async consumeMessages(topics: string[], callback: MessageCallback) {
-        const groupId = process.env.KAFKA_GROUP_ID ?? 'my-group-1'
-
-        const consumer = this.kafka.consumer({ groupId })
+        const consumer = this.kafka.consumer({ groupId: groupId })
         await consumer.connect()
         await consumer.subscribe({ topics, fromBeginning: true })
         await consumer.run({

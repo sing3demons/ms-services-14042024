@@ -1,20 +1,17 @@
 import { createClient, RedisClientType, SetOptions } from 'redis'
-
-const url = process.env.REDIS_URL || 'redis://localhost:6379'
+import { redis_url } from 'src/config'
 
 export class RedisService {
     private client: RedisClientType
 
     constructor() {
         this.client = createClient({
-            url,
+            url: redis_url,
             socket: {
                 connectTimeout: 10000,
                 reconnectStrategy: (retries: number) => {
                     if (retries > 20) {
-                        console.log(
-                            'Too many attempts to reconnect. Redis connection was terminated'
-                        )
+                        console.log('Too many attempts to reconnect. Redis connection was terminated')
                         return new Error('Too many retries.')
                     } else {
                         return retries * 500
