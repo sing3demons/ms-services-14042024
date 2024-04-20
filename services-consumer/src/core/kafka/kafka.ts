@@ -3,7 +3,7 @@ import { v4 as uuid } from 'uuid'
 import Logger from '../logger/index.js'
 import { CreateLogger } from '../logger/utils.js'
 import { MessageCallback } from './type.js'
-import { brokers, clientId, groupId, initialRetryTime, logLevelKafka, requestTimeout, retry } from 'src/config.js'
+import { brokers, clientId, groupId, initialRetryTime, logLevelKafka, requestTimeout, retry } from '../../config.js'
 
 const kafkaConfig: KafkaConfig = {
     clientId: clientId,
