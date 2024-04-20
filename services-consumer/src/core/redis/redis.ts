@@ -1,17 +1,18 @@
 import { createClient, RedisClientType, SetOptions } from 'redis'
 import { redis_url } from '../../config.js'
+import Logger from '../logger/index.js'
 
 export class RedisService {
     private client: RedisClientType
 
-    constructor() {
+    constructor(private readonly logger: Logger) {
         this.client = createClient({
             url: redis_url,
             socket: {
                 connectTimeout: 10000,
                 reconnectStrategy: (retries: number) => {
                     if (retries > 20) {
-                        console.log('Too many attempts to reconnect. Redis connection was terminated')
+                        this.logger.error('Too many attempts to reconnect. Redis connection was terminated')
                         return new Error('Too many retries.')
                     } else {
                         return retries * 500
@@ -20,7 +21,7 @@ export class RedisService {
             },
         })
 
-        this.client.on('connect', async () => console.log('redis connected'))
+        this.client.on('connect', () => this.logger.info('Connected to Redis', { url: redis_url }))
 
         this.client.on('error', (error) => {
             console.error(error)
