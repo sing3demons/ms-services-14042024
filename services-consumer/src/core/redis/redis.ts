@@ -1,5 +1,5 @@
 import { createClient, RedisClientType, SetOptions } from 'redis'
-import { redis_url } from 'src/config'
+import { redis_url } from '../../config.js'
 
 export class RedisService {
     private client: RedisClientType

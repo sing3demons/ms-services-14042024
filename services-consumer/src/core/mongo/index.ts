@@ -1,5 +1,5 @@
 import { Collection, MongoClient } from 'mongodb'
-import { b64string } from 'src/config'
+import { b64string } from '../../config.js'
 
 export default class MongoService {
     private client: MongoClient
