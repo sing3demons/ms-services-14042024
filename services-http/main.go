@@ -17,7 +17,7 @@ func main() {
 	rdb := cache.NewCacher(logger)
 	defer rdb.Close()
 
-	mongoClient := store.NewStore()
+	mongoClient := store.NewStore(logger)
 	defer mongoClient.Disconnect(context.Background())
 
 	r := routes.NewMicroservice()

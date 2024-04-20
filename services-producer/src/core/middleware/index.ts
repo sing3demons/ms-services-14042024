@@ -22,7 +22,6 @@ const httpLogger = (req: Request, res: Response, next: NextFunction) => {
             statusCode: res.statusCode,
             body: {} as any,
         },
-        duration: (performance.now() - start).toFixed(2),
     }
 
     const originalSend = res.json
@@ -32,7 +31,8 @@ const httpLogger = (req: Request, res: Response, next: NextFunction) => {
     }
     next()
     res.on('finish', () => {
-        logger.info('httpLogger', { session, ...data })
+        const end = performance.now()
+        logger.info('httpLogger', { session, ...data, duration: (end - start).toFixed(2) })
     })
 }
 
