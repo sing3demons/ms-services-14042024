@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/base64"
 	"log"
-	"os"
 	"time"
 
+	"github.com/sing3demons/service-http/config"
 	"github.com/sing3demons/service-http/logger"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -17,13 +17,13 @@ type Store struct {
 	logger logger.ILogger
 }
 
-func NewStore(logger logger.ILogger) *Store {
+func NewStore(cfg *config.Config, logger logger.ILogger) *Store {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
-	url := os.Getenv("MONGO_URL")
+	url := cfg.GetMongoURL()
 	if url == "" {
-		url = "bW9uZ29kYjovL0RFVl9VU0VSOkMzQkFENTYyLTg5NjgtNENENC05MENFLTQzQjZFMEJBMjM2MkBsb2NhbGhvc3Q6MjcwMTcvdG9kbz9hdXRoU291cmNlPWFkbWlu"
+		log.Fatal("mongo url is empty")
 	}
 
 	decodeURL, err := base64.StdEncoding.DecodeString(url)

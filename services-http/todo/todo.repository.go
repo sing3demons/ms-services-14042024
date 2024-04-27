@@ -2,9 +2,9 @@ package todo
 
 import (
 	"context"
-	"os"
 	"sync"
 
+	"github.com/sing3demons/service-http/config"
 	"github.com/sing3demons/service-http/logger"
 	"github.com/sing3demons/service-http/store"
 	"go.mongodb.org/mongo-driver/bson"
@@ -13,14 +13,16 @@ import (
 
 type TaskRepository interface {
 	GetTodos(ctx context.Context, filter TaskQuery, log logger.ILogger) ([]Task, int64, error)
+	GetTaskByID(ctx context.Context, id string, log logger.ILogger) (Task, error)
 }
 
 type taskRepository struct {
 	client *store.Store
+	cfg    *config.Config
 }
 
-func NewTaskRepository(client *store.Store) TaskRepository {
-	return &taskRepository{client}
+func NewTaskRepository(client *store.Store, cfg *config.Config) TaskRepository {
+	return &taskRepository{client, cfg}
 }
 
 func (t *taskRepository) GetTodos(ctx context.Context, tq TaskQuery, log logger.ILogger) ([]Task, int64, error) {
@@ -73,7 +75,7 @@ func (t *taskRepository) GetTodos(ctx context.Context, tq TaskQuery, log logger.
 				errCh <- err
 				return
 			}
-			todo.Href = os.Getenv("HOST") + "/todos/" + todo.ID
+			todo.Href = t.cfg.GetHost() + "/todos/" + todo.ID
 			mutex.Lock()
 			todos = append(todos, todo)
 			mutex.Unlock()
@@ -106,4 +108,23 @@ func (t *taskRepository) GetTodos(ctx context.Context, tq TaskQuery, log logger.
 	}
 
 	return todos, total, nil
+}
+
+func (t *taskRepository) GetTaskByID(ctx context.Context, id string, log logger.ILogger) (Task, error) {
+	log.Info("TaskRepository GetTaskByID")
+	col := t.client.Database("todo").Collection("tasks")
+
+	filter := bson.M{"id": id}
+
+	var todo Task
+	err := col.FindOne(ctx, filter).Decode(&todo)
+	if err != nil {
+		log.Error("GetTaskByID", logger.Fields{
+			"error": err,
+		})
+		return Task{}, err
+	}
+	todo.Href = t.cfg.GetHost() + "/todos/" + todo.ID
+
+	return todo, nil
 }

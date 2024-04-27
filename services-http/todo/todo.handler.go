@@ -3,10 +3,12 @@ package todo
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/sing3demons/service-http/logger"
 	"github.com/sing3demons/service-http/mlog"
 )
@@ -18,6 +20,7 @@ type todoHandler struct {
 
 type TodoHandler interface {
 	GetTodos(w http.ResponseWriter, r *http.Request)
+	GetTodoByID(w http.ResponseWriter, r *http.Request)
 }
 
 func NewTodoHandler(logger logger.ILogger, taskService TaskService) TodoHandler {
@@ -104,4 +107,36 @@ func (t *todoHandler) GetTodos(w http.ResponseWriter, r *http.Request) {
 		"duration": time.Since(start).Seconds(),
 	})
 	response(w).JSON(http.StatusOK, todos)
+}
+
+func (t *todoHandler) Param(r *http.Request, s string) string {
+	params := mux.Vars(r)
+	return params[s]
+}
+
+func (t *todoHandler) GetTodoByID(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+	defer cancel()
+	log := mlog.L(ctx)
+
+	id := t.Param(r, "id")
+	fmt.Println("=============================>", id)
+
+	log.Info("HandlerService :: start================>")
+	todo, err := t.taskService.GetTaskByID(ctx, id, log)
+
+	if err != nil {
+		log.Error("HandlerService ::  ===> get all todos", logger.Fields{
+			"error": err,
+		})
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	log.Info("end ======================> ", logger.Fields{
+		"todo":     todo,
+		"duration": time.Since(start).Seconds(),
+	})
+	response(w).JSON(http.StatusOK, todo)
 }

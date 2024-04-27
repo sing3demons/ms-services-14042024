@@ -2,10 +2,10 @@ package cache
 
 import (
 	"context"
-	"os"
 	"time"
 
 	"github.com/redis/go-redis/v9"
+	"github.com/sing3demons/service-http/config"
 	"github.com/sing3demons/service-http/logger"
 )
 
@@ -18,14 +18,11 @@ type Cacher interface {
 type cacher struct {
 	*redis.Client
 	logger logger.ILogger
+	cfg    *config.Config
 }
 
-func NewCacher(log logger.ILogger) Cacher {
-	uri := os.Getenv("REDIS_URL")
-	if uri == "" {
-		uri = "localhost:6379"
-	}
-
+func NewCacher(cfg *config.Config, log logger.ILogger) Cacher {
+	uri := cfg.GetRedisURL()
 	redisClient := redis.NewClient(&redis.Options{
 		Addr: uri,
 	})
@@ -39,7 +36,7 @@ func NewCacher(log logger.ILogger) Cacher {
 		"status": cmd,
 	})
 
-	return &cacher{redisClient, log}
+	return &cacher{redisClient, log, cfg}
 }
 
 func (c *cacher) Close() error {
