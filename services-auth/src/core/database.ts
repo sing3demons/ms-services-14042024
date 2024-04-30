@@ -5,14 +5,11 @@ import { v4 as uuidv4 } from 'uuid'
 
 const databasePrefix = 'data'
 
-export interface DatabaseOptions {
-    defaultData: object
-}
-
 export class Database<Entity extends object & { id: string }> {
-    private databasePath: string
-    constructor(collectionName: string, protected options?: DatabaseOptions) {
-        this.databasePath = path.join(databasePrefix, collectionName + '.json')
+    databasePath: string
+    constructor(collectionName: string, protected options?: { defaultData?: Entity[] }) {
+        const pwd = process.cwd()
+        this.databasePath = path.join(pwd, databasePrefix, collectionName + '.json')
     }
 
     async init() {
@@ -64,4 +61,4 @@ export class Database<Entity extends object & { id: string }> {
     }
 }
 
-const database = new Database('users')
+// const database = new Database('users')

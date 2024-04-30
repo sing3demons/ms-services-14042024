@@ -1,12 +1,13 @@
 import { Request, Response } from 'express'
+import { UserRepository } from './user.repository'
 
 export class UserController {
+    constructor(private readonly userRepository: UserRepository) {}
+
     async getAll(req: Request, res: Response) {
-        console.log('Hello from user controller')
-       
-        res.send('Hello from user controller')
+        console.log('Getting all users')
+        const users = await this.userRepository.getAll()
+        console.log('Users', users)
+        return res.json(users)
     }
 }
-// const router = new Router();
-
-// export default router.instance
