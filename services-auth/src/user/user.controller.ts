@@ -2,12 +2,10 @@ import { Request, Response } from 'express'
 import { UserRepository } from './user.repository'
 import { BaseController } from '../core/base-controller'
 import { BaseResponse } from '../core/response'
-import autoBind from 'auto-bind';
 
-
-export class UserController {
+export class UserController extends BaseController {
     constructor(private readonly userRepository: UserRepository) {
-        autoBind(this);
+        super()
     }
 
     async getAll(req: Request, res: Response) {
