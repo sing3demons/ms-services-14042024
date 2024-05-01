@@ -20,7 +20,7 @@
         "typescript": "^5.4.5"
     },
     "dependencies": {
-        "auto-bind": "^5.0.1",
+        "auto-bind": "^4.0.0",
         "express": "^4.19.2",
         "uuid": "^9.0.1",
         "zod": "^3.23.4"
