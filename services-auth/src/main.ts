@@ -9,7 +9,6 @@ app.use(express.json())
 
 app.use(express.urlencoded({ extended: true }))
 app.use(router)
-
 app.use(globalErrorHandler)
 
 app.listen(3000, () => {

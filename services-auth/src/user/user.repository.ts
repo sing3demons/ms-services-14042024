@@ -6,4 +6,8 @@ export class UserRepository {
     async getAll() {
         return await this.db.readAll()
     }
+
+    async create(data: UserModel) {
+        return await this.db.insert(data)
+    }
 }

@@ -3,6 +3,9 @@ import { UserController } from './user.controller'
 import { UserModel } from './user.model'
 import { UserRepository } from './user.repository'
 import { v4 as uuidv4 } from 'uuid'
+import { TypeRoute } from '../core/typed-router'
+
+export const route = new TypeRoute()
 
 const db = new Database<UserModel>('users', {
     defaultData: [

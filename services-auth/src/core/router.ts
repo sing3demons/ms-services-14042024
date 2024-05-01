@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from 'express'
 import { BaseResponse } from './response'
 import express from 'express'
-import { HandlerMetadata, MaybePromise } from './teped-router'
+import { HandlerMetadata, MaybePromise } from './typed-router'
 
 export type RequestHandler = (req: Request, res: Response, next: NextFunction) => MaybePromise<BaseResponse>
 
@@ -30,27 +30,27 @@ export class Router {
         return catchAsync(invokeHandler)
     }
 
-    get(path: string, ...handlers: RequestHandler[]) {
+    private get(path: string, ...handlers: RequestHandler[]) {
         const { handler, middlewares } = this.extractHandlers(handlers)
         this.instance.route(path).get(middlewares, this.preRequest(handler))
     }
 
-    post(path: string, ...handlers: RequestHandler[]) {
+    private post(path: string, ...handlers: RequestHandler[]) {
         const { handler, middlewares } = this.extractHandlers(handlers)
         this.instance.route(path).post(middlewares, this.preRequest(handler))
     }
 
-    put(path: string, ...handlers: RequestHandler[]) {
+    private put(path: string, ...handlers: RequestHandler[]) {
         const { handler, middlewares } = this.extractHandlers(handlers)
         this.instance.route(path).put(middlewares, this.preRequest(handler))
     }
 
-    delete(path: string, ...handlers: RequestHandler[]) {
+    private delete(path: string, ...handlers: RequestHandler[]) {
         const { handler, middlewares } = this.extractHandlers(handlers)
         this.instance.route(path).delete(middlewares, this.preRequest(handler))
     }
 
-    registerClassRoutes(classInstance: object) {
+    Register(classInstance: object) {
         const fields = Object.values(classInstance)
         fields.forEach((field) => {
             const route = field as HandlerMetadata

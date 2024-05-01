@@ -1,15 +1,17 @@
-import { Request, Response } from 'express'
 import { UserRepository } from './user.repository'
 import { BaseController } from '../core/base-controller'
-import { BaseResponse } from '../core/response'
+import { route } from './user.bootstrap'
 
 export class UserController extends BaseController {
     constructor(private readonly userRepository: UserRepository) {
         super()
     }
 
-    async getAll(req: Request, res: Response) {
-        const users = await this.userRepository.getAll()
-        return { data: users }
-    }
+    get = route.get('/').handler(async () => {
+        return {
+            data: await this.userRepository.getAll(),
+        }
+    })
+
+    create = route.post('/')
 }

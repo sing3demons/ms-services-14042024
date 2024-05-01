@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from 'express'
 import { Router } from 'express'
-import { userRoutes } from './user/'
+import { userRoutes } from './user/index'
 
 const router = Router()
 
