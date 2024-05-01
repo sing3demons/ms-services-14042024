@@ -6,8 +6,8 @@ const router = Router()
 
 router.use('/users', userRoutes)
 
-// router.get('/', (req: Request, res: Response, next: NextFunction) => {
-//     res.send('Hello World')
-// })
+router.get('/healthz', (req: Request, res: Response) => {
+    res.send('ok')
+})
 
 export default router
