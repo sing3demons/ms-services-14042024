@@ -1,13 +1,15 @@
 import { Request, Response } from 'express'
 import { UserRepository } from './user.repository'
+import { BaseController } from '../core/base-controller'
+import { BaseResponse } from '../core/response'
 
-export class UserController {
-    constructor(private readonly userRepository: UserRepository) {}
+export class UserController extends BaseController {
+    constructor(private readonly userRepository: UserRepository) {
+        super()
+    }
 
-    async getAll(req: Request, res: Response) {
-        console.log('Getting all users')
+    async getAll(req: Request, res: Response): Promise<BaseResponse> {
         const users = await this.userRepository.getAll()
-        console.log('Users', users)
-        return res.json(users)
+        return { data: users }
     }
 }

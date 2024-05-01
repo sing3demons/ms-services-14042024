@@ -1,9 +1,7 @@
-import express from 'express'
-
+import { Router } from '../core'
 import { userController } from './user.bootstrap'
 
-const router = express.Router()
+const router = new Router()
+router.get('/', userController.getAll)
 
-router.get('/', userController.getAll.bind(userController))
-
-export default router
+export default router.instance

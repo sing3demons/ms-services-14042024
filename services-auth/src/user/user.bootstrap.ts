@@ -6,8 +6,8 @@ import { v4 as uuidv4 } from 'uuid'
 
 const db = new Database<UserModel>('users', {
     defaultData: [
-        { id: uuidv4(), username: 'John Doe', email: 'user1@dev.com' },
-        { id: uuidv4(), username: 'Jane Doe', email: 'user2@dev.com' },
+        { id: uuidv4(), username: 'John Doe', email: 'user1@dev.com', password: 'password' },
+        { id: uuidv4(), username: 'Jane Doe', email: 'user2@dev.com', password: 'password' },
     ],
 })
 const userRepository = new UserRepository(db)

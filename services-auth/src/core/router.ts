@@ -11,7 +11,7 @@ export const catchAsync = (fn: (...args: any[]) => any) => (req: Request, res: R
 }
 
 export class Router {
-    constructor(public readonly instance: express.Router) {}
+    constructor(public readonly instance: express.Router = express.Router()) {}
 
     private extractHandlers(handlers: RequestHandler[]) {
         const handler = handlers[handlers.length - 1]
@@ -51,19 +51,17 @@ export class Router {
         this.instance.route(path).delete(middlewares, this.preRequest(handler))
     }
 
-
     registerClassRoutes(classInstance: object) {
-        const fields = Object.values(classInstance);
+        const fields = Object.values(classInstance)
         fields.forEach((field) => {
-          const route = field as HandlerMetadata;
-          if (route.__handlerMetadata) {
-            const { path, handler } = route;
-            const method = route.method.toLowerCase();
-            console.log('Registering route', method, path);
-            (this.instance.route(path) as any)[method](this.preRequest(handler));
-          }
-        });
-        return this;
-      }
-
+            const route = field as HandlerMetadata
+            if (route.__handlerMetadata) {
+                const { path, handler } = route
+                const method = route.method.toLowerCase()
+                console.log('Registering route', method, path)
+                ;(this.instance.route(path) as any)[method](this.preRequest(handler))
+            }
+        })
+        return this
+    }
 }
