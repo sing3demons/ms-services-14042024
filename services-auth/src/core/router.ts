@@ -1,8 +1,7 @@
 import type { NextFunction, Request, Response } from 'express'
-import { MaybePromise } from './type'
 import { BaseResponse } from './response'
 import express from 'express'
-import { HandlerMetadata } from './teped-router'
+import { HandlerMetadata, MaybePromise } from './teped-router'
 
 export type RequestHandler = (req: Request, res: Response, next: NextFunction) => MaybePromise<BaseResponse>
 
