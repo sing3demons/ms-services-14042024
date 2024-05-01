@@ -11,6 +11,5 @@ export class UserController extends BaseController {
     async getAll(req: Request, res: Response) {
         const users = await this.userRepository.getAll()
         return { data: users }
-        // return res.send({ data: users })
     }
 }

@@ -6,9 +6,3 @@ const router = new Router()
 router.get('/', userController.getAll)
 
 export default router.instance
-
-// const router = express.Router()
-
-// router.get('/', userController.getAll)
-
-// export default router
