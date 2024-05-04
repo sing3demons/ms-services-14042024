@@ -29,30 +29,27 @@ export class ServiceManager {
         private readonly logger: Logger
     ) {}
 
+    private userCollection = this.client.db('users').collection<IUser>('users')
+    private todoCollection = this.client.db('todo').collection<Todo>('tasks')
+
     consumer = async (ctx: Record<string, string>, topic: string, message: string) => {
         const logger = this.logger.Logger(ctx)
-        const db = this.client.db('todo')
         logger.info('Received message from topic', { topic, message })
         switch (topic) {
             case 'create.todos':
-                const col = db.collection<Todo>('tasks')
-                const payload = JSON.parse(message) as Todo
-                const key = `todos::${payload.id}`
-
-                const response = await this.createTodo(key, payload, col)
-                logger.info('Todo created', response)
-
+                await this.createTodo(message, this.todoCollection)
                 break
             case 'create.users':
-                const user = JSON.parse(message) as IUser
-                await this.createUsers(`users::${user.id}`, user, this.client.db('users').collection<IUser>('users'))
+                await this.createUsers(message, this.userCollection)
                 break
             default:
                 console.log('Unknown topic')
         }
     }
 
-    async createTodo(key: string, payload: Todo, col: Collection<Todo>) {
+    async createTodo(message: string, col: Collection<Todo>) {
+        const payload = JSON.parse(message) as Todo
+        const key = `todos::${payload.id}`
         try {
             const response = {
                 id: payload.id,
@@ -62,11 +59,13 @@ export class ServiceManager {
 
             const insertOneResult = await col.insertOne(payload)
             const update = await this.redis.set(key, JSON.stringify(response), 60)
-            return {
+            const result = {
                 insertOneResult,
                 update,
                 response,
             }
+            this.logger.info(`${this.createTodo.name} success`, result)
+            return
         } catch (error) {
             await this.redis.set(key, JSON.stringify({ status: 'error', data: payload }), 60)
             if (error instanceof Error) {
@@ -76,7 +75,9 @@ export class ServiceManager {
         }
     }
 
-    async createUsers(key: string, payload: IUser, col: Collection<IUser>) {
+    async createUsers(message: string, col: Collection<IUser>) {
+        const payload = JSON.parse(message) as IUser
+        const key = `users::${payload.id}`
         try {
             const response: ICachedResponse<IUser> = {
                 id: payload.id,
@@ -99,11 +100,13 @@ export class ServiceManager {
             }
             const insertOneResult = await col.insertOne(payload)
             const update = await this.redis.set(key, JSON.stringify(response), 60)
-            return {
+            const result = {
                 insertOneResult,
                 update,
                 response,
             }
+            this.logger.info(`${this.createTodo.name} success`, result)
+            return
         } catch (error) {
             await this.redis.set(key, JSON.stringify({ status: 'error', data: payload }), 60)
             if (error instanceof Error) {
