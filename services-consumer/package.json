@@ -16,7 +16,8 @@
         "mongodb": "^6.5.0",
         "redis": "^4.6.13",
         "uuid": "^9.0.1",
-        "winston": "^3.13.0"
+        "winston": "^3.13.0",
+        "zod": "^3.23.6"
     },
     "devDependencies": {
         "@types/express": "^4.17.21",

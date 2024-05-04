@@ -8,7 +8,6 @@ import { httpLogger } from './core/middleware/index.js'
 import helmet from 'helmet'
 
 const app = express()
-app.use(helmet())
 
 app.use((req, _res, next) => {
     if (!req.headers['x-session']) {
@@ -18,10 +17,10 @@ app.use((req, _res, next) => {
     next()
 })
 
-app.use(httpLogger)
-
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+app.use(httpLogger)
+app.use(helmet())
 
 app.get('/health', (_req, res) => {
     res.status(200).json({ message: 'OK' })

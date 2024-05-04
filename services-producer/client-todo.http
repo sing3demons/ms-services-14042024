@@ -1,4 +1,5 @@
 @uri=http://localhost:3000/api/v1/todo
+@host=http://localhost:3000/api/v1
 
 POST {{uri}} HTTP/1.1
 Content-Type: application/json
@@ -9,4 +10,16 @@ Content-Type: application/json
   "startDate": "2019-01-01",
   "endDate": "2019-01-02",
   "status": "active"
+}
+
+
+###
+POST {{host}}/users HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "sing",
+    "email": "sing@dev.com",
+    "password": "123456",
+    "password_confirmation": "123456"
 }

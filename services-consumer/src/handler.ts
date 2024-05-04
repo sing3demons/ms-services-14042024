@@ -1,6 +1,26 @@
 import { Collection, MongoClient } from 'mongodb'
 import Logger from './core/logger/index.js'
 import { RedisService } from './core/redis/redis.js'
+import { z } from 'zod'
+
+export const UserSchema = z.object({
+    name: z.string(),
+    email: z.string().email(),
+    password: z.string(),
+})
+
+export const ParamsSchema = z.object({
+    id: z.string(),
+})
+
+export type userInfer = z.infer<typeof UserSchema>
+
+export type IUser = userInfer & {
+    id: string
+    createdAt: string
+    updatedAt: string
+    role: string[]
+}
 
 export class ServiceManager {
     constructor(
@@ -23,8 +43,9 @@ export class ServiceManager {
                 logger.info('Todo created', response)
 
                 break
-            case 'topic2':
-                await this.redis.delete('topic1::' + ctx.session)
+            case 'create.users':
+                const user = JSON.parse(message) as IUser
+                await this.createUsers(`users::${user.id}`, user, this.client.db('users').collection<IUser>('users'))
                 break
             default:
                 console.log('Unknown topic')
@@ -54,6 +75,50 @@ export class ServiceManager {
             throw new Error('Error creating todo')
         }
     }
+
+    async createUsers(key: string, payload: IUser, col: Collection<IUser>) {
+        try {
+            const response: ICachedResponse<IUser> = {
+                id: payload.id,
+                status: 'success',
+                href: `users/${payload.id}`,
+                item: {
+                    ...payload,
+                    password: '********',
+                },
+            }
+            const exists = await col.findOne({ email: payload.email })
+            if (exists) {
+                response.status = 'error'
+                response.item = {
+                    ...payload,
+                    password: '********',
+                }
+                await this.redis.set(key, JSON.stringify(response), 60)
+                throw new Error(String(response))
+            }
+            const insertOneResult = await col.insertOne(payload)
+            const update = await this.redis.set(key, JSON.stringify(response), 60)
+            return {
+                insertOneResult,
+                update,
+                response,
+            }
+        } catch (error) {
+            await this.redis.set(key, JSON.stringify({ status: 'error', data: payload }), 60)
+            if (error instanceof Error) {
+                throw new Error(error.message)
+            }
+            throw new Error('Error creating user')
+        }
+    }
+}
+
+interface ICachedResponse<T extends unknown> {
+    id: string
+    href: string
+    status: string
+    item?: T
 }
 
 export enum Status {

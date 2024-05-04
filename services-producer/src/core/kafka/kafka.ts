@@ -109,6 +109,7 @@ export class KafkaService {
             })
 
             await producer.disconnect()
+            return record
         } catch (error) {
             this.logger.error(`Error sending message to topic ${topic}`, {
                 error,

@@ -29,8 +29,8 @@ class Config {
         this.groupId = process.env.KAFKA_GROUP_ID ?? 'my-group-1'
         this.b64string =
             process.env.MONGO_URI ??
-            'bW9uZ29kYjovL0RFVl9VU0VSOkMzQkFENTYyLTg5NjgtNENENC05MENFLTQzQjZFMEJBMjM2MkBsb2NhbGhvc3Q6MjcwMTcvdG9kbz9hdXRoU291cmNlPWFkbWlu'
-        this.topics = process.env.KAFKA_TOPIC?.split(',') ?? ['create.todos']
+            'bW9uZ29kYjovL21vbmdvZGIxOjI3MDE3LG1vbmdvZGIyOjI3MDE4LG1vbmdvZGIzOjI3MDE5L3VzZXJzP3JlcGxpY2FTZXQ9bXktcmVwbGljYS1zZXQ='
+        this.topics = process.env.KAFKA_TOPIC?.split(',') ?? ['create.todos', 'create.users','update.profile','delete.users']
     }
 }
 

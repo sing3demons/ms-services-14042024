@@ -14,7 +14,16 @@ export default class MongoService {
     }
 
     async connect() {
-        await this.client.connect()
+        const conn = await this.client.connect()
+        conn.db('users')
+            .collection('users')
+            .createIndexes(
+                [
+                    { key: { email: 1 }, unique: true },
+                    { key: { id: 1 }, unique: true },
+                ],
+                { unique: true }
+            )
     }
 
     async disconnect() {
