@@ -63,17 +63,20 @@ async function customRequest(req: JWTRequest, res: Response, next: NextFunction)
 
     const xSession = req.header('x-session')
     const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, 'x-session': xSession }
+    try {
+        const { data } = await axios.get(serviceAuth, { headers })
+        if (!data) {
+            return res.status(401).json({ message: 'Unauthorized' })
+        }
 
-    const { data } = await axios.get(serviceAuth, { headers })
-    if (!data) {
-        return res.status(401).json({ message: 'Unauthorized' })
-    }
-
-    if (data.statusCode === 200 && data.message === 'success') {
-        const jwtPayload = jwt.decode(token) as PayloadToken
-        req.user = jwtPayload
-        return next()
-    } else {
+        if (data.statusCode === 200 && data.message === 'success') {
+            const jwtPayload = jwt.decode(token) as PayloadToken
+            req.user = jwtPayload
+            return next()
+        } else {
+            return res.status(401).json({ message: 'Unauthorized' })
+        }
+    } catch (error) {
         return res.status(401).json({ message: 'Unauthorized' })
     }
 }

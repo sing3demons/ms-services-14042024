@@ -1,9 +1,23 @@
-import { Router } from '../core'
-import { userController } from './user.bootstrap'
+import { Router } from 'express'
+import { MongoClient } from 'mongodb'
+import Logger from '../core/logger/index.js'
+import { MyRouter, TypeRoute } from '../core/router/index.js'
+import { UserController } from './user.controller.js'
+import { UserRepository } from './user.repository.js'
+import { UserService } from './user.service.js'
+import { verifyToken } from '../middleware/auth.js'
 
-// const router = new Router()
-// router.get('/', userController.getAll)
+export default class UserRouter {
+  constructor(
+    private readonly route: TypeRoute,
+    private readonly client: MongoClient,
+    private readonly logger: Logger
+  ) {}
 
-// export default router.instance
-
-export default new Router().Register(userController).instance
+  register(router: Router): Router {
+    const userRepository = new UserRepository(this.client, this.logger)
+    const userService = new UserService(userRepository, this.logger)
+    const userController = new UserController(this.route, userService, this.logger)
+    return router.use('/users', verifyToken, new MyRouter().Register(userController).instance)
+  }
+}
