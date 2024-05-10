@@ -12,6 +12,7 @@ class Config {
     initialRetryTime: string | number
     logLevelKafka: string | number
     groupId: string
+    serviceAuth: string
 
     constructor() {
         this.port = process.env.PORT ?? '3000'
@@ -25,6 +26,7 @@ class Config {
         this.initialRetryTime = process.env?.KAFKA_INITIAL_RETRY_TIME ?? 100
         this.logLevelKafka = process.env?.KAFKA_LOG_LEVEL ?? 4
         this.groupId = process.env.KAFKA_GROUP_ID ?? 'my-group-1'
+        this.serviceAuth = process.env.SERVICE_AUTH ?? 'http://localhost:2567/auth/verifyToken'
     }
 }
 
@@ -42,4 +44,5 @@ export const {
     initialRetryTime,
     logLevelKafka,
     groupId,
+    serviceAuth
 } = config
